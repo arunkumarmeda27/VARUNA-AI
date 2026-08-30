@@ -4,6 +4,9 @@
 **Smart India Hackathon 2026 | Problem Statement: SIH26080**
 
 [![Tests](https://img.shields.io/badge/pytest-22%20passed-success)](tests/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](HOW_TO_RUN.md#method-1-docker-zero-setup---recommended-for-evaluators)
+[![Project Brain](https://img.shields.io/badge/Project%20Brain-Tracking%20Active-brightgreen)](brain.md)
+[![How to Run](https://img.shields.io/badge/Run%20Guide-HOW__TO__RUN.md-orange)](HOW_TO_RUN.md)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue.svg)](requirements.txt)
 [![Framework](https://img.shields.io/badge/Django-5%2B-darkgreen.svg)](backend/)
 [![Verification](https://img.shields.io/badge/Verification-WMO%20%2F%20IMD%20Standard-purple)](docs/verification_report.md)

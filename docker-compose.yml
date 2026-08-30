@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  varuna-forecast-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: varuna_ai_forecasting_platform
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SECRET_KEY=production-secure-varuna-ai-sih26080-key
+      - DEBUG=True
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./weather_data/processed:/app/weather_data/processed
+      - ./regimes/models:/app/regimes/models
+      - ./correction/artifacts:/app/correction/artifacts
+      - ./verification:/app/verification
+      - ./varuna_db.sqlite3:/app/varuna_db.sqlite3
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+networks:
+  default:
+    name: varuna_network
