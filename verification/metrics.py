@@ -134,3 +134,12 @@ def calculate_fractions_skill_score(
 
     fss = 1.0 - (mse / mse_ref)
     return round(float(np.clip(fss, 0.0, 1.0)), 4)
+
+
+class VerificationMetrics:
+    """Class wrapper providing static access to meteorological verification metrics."""
+    continuous_metrics = staticmethod(calculate_continuous_metrics)
+    contingency_table = staticmethod(calculate_contingency_table)
+    categorical_scores = staticmethod(calculate_categorical_scores)
+    fractions_skill_score = staticmethod(calculate_fractions_skill_score)
+

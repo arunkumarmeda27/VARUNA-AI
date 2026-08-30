@@ -88,3 +88,15 @@ class RainfallCorrectionEngine:
         df_out["post_processing_model_version"] = "VARUNA-Level3-XGB-v1.0.0"
 
         return df_out
+
+    def predict_ladder(self, df: pd.DataFrame) -> Dict[str, np.ndarray]:
+        """Convenience method returning predictions for all ladder levels."""
+        processed = self.process_forecast(df)
+        return {
+            "level0_raw_nwp": processed["rain_level0_raw"].values,
+            "level1_quantile_mapping": processed["rain_level1_eqm"].values,
+            "level2_standard_ml": processed["rain_level2_std_ml"].values,
+            "level3_regime_aware_ml": processed["rain_level3_varuna"].values,
+        }
+
+CorrectionEngine = RainfallCorrectionEngine

@@ -87,17 +87,27 @@ class RegimeModelTrainer:
         y_val_idx = y_val.map(class_to_idx).values
 
         model = xgb.XGBClassifier(
-            n_estimators=150,
-            max_depth=5,
-            learning_rate=0.08,
-            subsample=0.85,
-            colsample_bytree=0.85,
+            n_estimators=400,
+            max_depth=6,
+            learning_rate=0.04,
+            subsample=0.80,
+            colsample_bytree=0.80,
+            colsample_bylevel=0.90,
+            min_child_weight=4,
+            gamma=0.3,
+            reg_alpha=0.2,
+            reg_lambda=1.5,
             objective="multi:softprob",
             num_class=len(classes),
             random_state=42,
             eval_metric="mlogloss",
+            early_stopping_rounds=40,
         )
-        model.fit(X_train, y_train_idx, eval_set=[(X_val, y_val_idx)], verbose=False)
+        model.fit(
+            X_train, y_train_idx,
+            eval_set=[(X_val, y_val_idx)],
+            verbose=False,
+        )
 
         val_preds_idx = model.predict(X_val)
         val_probs = model.predict_proba(X_val)
@@ -119,7 +129,7 @@ class RegimeModelTrainer:
             "class_to_idx": class_to_idx,
             "idx_to_class": idx_to_class,
             "feature_cols": REGIME_FEATURE_COLS,
-            "model_version": f"regime-xgb-{self.model_version}",
+            "model_version": f"regime-xgb-v2.0.0",
             "data_version": self.data_version,
             "created_at": datetime.utcnow().isoformat(),
             "metrics": metrics,

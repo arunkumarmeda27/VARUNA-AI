@@ -3,8 +3,9 @@
 **Problem Statement**: SIH26080 — Regime-Aware AI Post-Processing of Monsoon Rainfall Forecasts  
 **Smart India Hackathon 2026** &bull; **Ministry of Earth Sciences (MoES) / IMD**  
 **Central Research Question**: *"Can explicitly identifying the prevailing weather regime and using that information during rainfall post-processing improve raw NWP rainfall forecasts, especially for heavy and very heavy rainfall events?"*  
-**Latest Update Timestamp**: `2026-08-30T12:20:00+05:30`  
+**Latest Update Timestamp**: `2026-08-30T12:39:00+05:30`  
 **System Status**: `OPERATIONAL & VERIFIED (22/22 Automated Tests Passing)`
+**Model Version**: Regime Classifier v2.0.0 | Correction Models v2.0.0 / v3.0.0
 
 ---
 
@@ -33,10 +34,10 @@
 | **M1** | Observed Rainfall Ingestion & Validation | `weather_data/` | `COMPLETED` | `weather_data/ingestion/data_loader.py`, `docs/data_dictionary.md` | Non-negative clamping ($R_{obs} \ge 0$), IMD standards |
 | **M2** | NWP + Observation Alignment | `weather_data/` | `COMPLETED` | `weather_data/temporal/temporal_aligner.py` | Valid time matched ($t_{valid} = t_{init} + \tau$), zero leakage |
 | **M3** | Master Dataset Generation | `weather_data/` | `COMPLETED` | `weather_data/master_dataset_builder.py` | Chronological splits: Train (2018-2022), Val (2023), Test (2024) |
-| **M4** | Weather Regime Classification | `regimes/` | `COMPLETED` | `regimes/training/train_classifier.py`, `regimes/inference/regime_classifier.py` | **87.84% Test Accuracy**, **0.888 Macro F1**, **0.178 Brier Score** |
+| **M4** | Weather Regime Classification | `regimes/` | `COMPLETED` | `regimes/training/train_classifier.py`, `regimes/inference/regime_classifier.py` | **88.52% Test Accuracy**, **0.896 Macro F1**, **0.164 Brier Score** (v2.0.0: +0.68% Acc, -0.014 Brier) |
 | **M5** | Raw NWP Baseline Verification | `correction/` | `COMPLETED` | `correction/baselines/level0_raw_nwp.py` | Level 0 MAE: 8.76 mm, RMSE: 16.89 mm, Bias: -5.60 mm |
 | **M6** | Statistical Bias Correction (EQM) | `correction/` | `COMPLETED` | `correction/baselines/level1_quantile_mapping.py` | Level 1 MAE: 5.71 mm, RMSE: 8.96 mm (Drizzle bias fixed: -0.04 mm) |
-| **M7** | Regime-Aware ML Correction Ladder | `correction/` | `COMPLETED` | `correction/models/level2_standard_ml.py`, `level3_regime_aware_ml.py` | **40.92% RMSE reduction** over Raw NWP; Bias reduced to -0.27 mm |
+| **M7** | Regime-Aware ML Correction Ladder | `correction/` | `COMPLETED` | `correction/models/level2_standard_ml.py`, `level3_regime_aware_ml.py` | **L2 MAE: 5.32mm / L3 MAE: 5.22mm / L3 RMSE: 10.22mm → 39.48% RMSE reduction** vs Raw NWP; Hypothesis confirmed: L3 > L2 |
 | **M8** | Heavy Rainfall Probability & Uncertainty | `probability/`, `uncertainty/` | `COMPLETED` | `probability/heavy_rainfall.py`, `uncertainty/conformal_quantiles.py` | Calibrated $P(R \ge 64.5\text{mm})$, 80% Conformal Intervals |
 | **M9** | Scientific Verification Pipeline | `verification/` | `COMPLETED` | `verification/metrics.py`, `verify.py`, `docs/verification_report.md` | Full WMO/IMD metrics: POD, FAR, CSI, ETS, FSS, Contingency Tables |
 | **M10** | Grid-to-District Spatial Aggregation | `geospatial/` | `COMPLETED` | `geospatial/districts/district_geometry.py`, `grid_aggregator.py` | Point-in-polygon & area-weighted GeoJSON generation |

@@ -1,10 +1,10 @@
 {
   "test_period": "2024-06-01 to 2024-09-30",
   "test_samples": 1464,
-  "overall_accuracy": 0.8784153005464481,
-  "macro_f1": 0.8880537225214946,
-  "weighted_f1": 0.8806438770928235,
-  "brier_score": 0.17830254137516022,
+  "overall_accuracy": 0.8852459016393442,
+  "macro_f1": 0.8959033276699007,
+  "weighted_f1": 0.8872268195851646,
+  "brier_score": 0.1641605794429779,
   "classes": [
     "ACTIVE_MONSOON",
     "BREAK_MONSOON",
@@ -15,11 +15,11 @@
   ],
   "confusion_matrix": [
     [
-      620,
+      627,
       0,
-      68,
+      62,
       1,
-      31,
+      30,
       0
     ],
     [
@@ -31,11 +31,11 @@
       0
     ],
     [
-      33,
+      37,
       0,
-      207,
-      1,
-      11,
+      206,
+      0,
+      9,
       0
     ],
     [
@@ -47,11 +47,11 @@
       0
     ],
     [
-      13,
+      8,
       0,
-      20,
+      21,
       0,
-      159,
+      163,
       0
     ],
     [
@@ -65,9 +65,9 @@
   ],
   "per_class_metrics": {
     "ACTIVE_MONSOON": {
-      "precision": 0.9309309309309309,
-      "recall": 0.8611111111111112,
-      "f1-score": 0.8946608946608947,
+      "precision": 0.9330357142857143,
+      "recall": 0.8708333333333333,
+      "f1-score": 0.9008620689655172,
       "support": 720
     },
     "BREAK_MONSOON": {
@@ -77,21 +77,21 @@
       "support": 252
     },
     "COASTAL_RAINFALL": {
-      "precision": 0.7016949152542373,
-      "recall": 0.8214285714285714,
-      "f1-score": 0.7568555758683729,
+      "precision": 0.71280276816609,
+      "recall": 0.8174603174603174,
+      "f1-score": 0.7615526802218114,
       "support": 252
     },
     "MONSOON_LOW_DEPRESSION": {
-      "precision": 0.96,
+      "precision": 0.9795918367346939,
       "recall": 1.0,
-      "f1-score": 0.9795918367346939,
+      "f1-score": 0.9896907216494846,
       "support": 48
     },
     "OROGRAPHIC_RAINFALL": {
-      "precision": 0.7910447761194029,
-      "recall": 0.828125,
-      "f1-score": 0.8091603053435115,
+      "precision": 0.806930693069307,
+      "recall": 0.8489583333333334,
+      "f1-score": 0.8274111675126904,
       "support": 192
     },
     "WESTERN_DISTURBANCE": {

@@ -5,16 +5,16 @@
   "val_period": "2023",
   "baseline_metrics": {
     "model_type": "LogisticRegression_Baseline",
-    "accuracy": 0.9098360655737705,
-    "macro_f1": 0.8681241603711675,
-    "log_loss": 0.2016956042193042
+    "accuracy": 0.9118852459016393,
+    "macro_f1": 0.8698053498255265,
+    "log_loss": 0.19847620278301922
   },
   "production_metrics": {
     "model_type": "XGBoost_Regime_Classifier",
-    "accuracy": 0.8934426229508197,
-    "macro_f1": 0.7151566644038874,
-    "weighted_f1": 0.8935884654438451,
-    "log_loss": 0.2523671603999903,
+    "accuracy": 0.8995901639344263,
+    "macro_f1": 0.7182143730480667,
+    "weighted_f1": 0.8992552574031981,
+    "log_loss": 0.24125034641718368,
     "classes": [
       "ACTIVE_MONSOON",
       "BREAK_MONSOON",
@@ -24,5 +24,5 @@
       "WESTERN_DISTURBANCE"
     ]
   },
-  "timestamp": "2026-08-30T06:26:05.369833"
+  "timestamp": "2026-08-30T07:04:14.388193"
 }

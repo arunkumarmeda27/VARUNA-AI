@@ -1,0 +1,462 @@
+{
+  "experiment_id": "EXP_ABLATION_2026_01",
+  "experiment_name": "SIH26080 Scientific Ablation & Regime-Wise Verification",
+  "dataset_version": "v1.0.0",
+  "test_period": "2024-06-01 to 2024-09-30",
+  "test_sample_count": 1464,
+  "research_hypothesis": "Explicit weather regime identification provides measurable skill gains over standard NWP post-processing.",
+  "hypothesis_supported": true,
+  "overall_continuous_metrics": {
+    "Config0_Raw_NWP": {
+      "MAE": 8.763,
+      "RMSE": 16.889,
+      "Mean_Bias": -5.601,
+      "Correlation": 0.977
+    },
+    "Config1_Quantile_Mapping_EQM": {
+      "MAE": 5.709,
+      "RMSE": 8.96,
+      "Mean_Bias": -0.041,
+      "Correlation": 0.98
+    },
+    "Config2_Standard_ML_ModelA": {
+      "MAE": 5.322,
+      "RMSE": 10.532,
+      "Mean_Bias": -1.548,
+      "Correlation": 0.973
+    },
+    "Config3_Regime_Aware_ML_ModelB": {
+      "MAE": 5.216,
+      "RMSE": 10.221,
+      "Mean_Bias": -1.454,
+      "Correlation": 0.975
+    }
+  },
+  "categorical_metrics_by_threshold": {
+    "2.5": {
+      "Config0_Raw_NWP": {
+        "POD": 0.9075,
+        "FAR": 0.2018,
+        "CSI": 0.7381,
+        "ETS": 0.0515,
+        "Frequency_Bias": 1.137,
+        "Hits": 1040,
+        "Misses": 106,
+        "False_Alarms": 263
+      },
+      "Config1_Quantile_Mapping_EQM": {
+        "POD": 0.863,
+        "FAR": 0.1407,
+        "CSI": 0.7561,
+        "ETS": 0.2162,
+        "Frequency_Bias": 1.0044,
+        "Hits": 989,
+        "Misses": 157,
+        "False_Alarms": 162
+      },
+      "Config2_Standard_ML_ModelA": {
+        "POD": 0.9145,
+        "FAR": 0.0429,
+        "CSI": 0.8785,
+        "ETS": 0.5683,
+        "Frequency_Bias": 0.9555,
+        "Hits": 1048,
+        "Misses": 98,
+        "False_Alarms": 47
+      },
+      "Config3_Regime_Aware_ML_ModelB": {
+        "POD": 0.9415,
+        "FAR": 0.0409,
+        "CSI": 0.9052,
+        "ETS": 0.6371,
+        "Frequency_Bias": 0.9817,
+        "Hits": 1079,
+        "Misses": 67,
+        "False_Alarms": 46
+      }
+    },
+    "15.6": {
+      "Config0_Raw_NWP": {
+        "POD": 0.8979,
+        "FAR": 0.0618,
+        "CSI": 0.8478,
+        "ETS": 0.7388,
+        "Frequency_Bias": 0.9571,
+        "Hits": 607,
+        "Misses": 69,
+        "False_Alarms": 40
+      },
+      "Config1_Quantile_Mapping_EQM": {
+        "POD": 0.9053,
+        "FAR": 0.0671,
+        "CSI": 0.85,
+        "ETS": 0.7411,
+        "Frequency_Bias": 0.9704,
+        "Hits": 612,
+        "Misses": 64,
+        "False_Alarms": 44
+      },
+      "Config2_Standard_ML_ModelA": {
+        "POD": 0.8861,
+        "FAR": 0.0385,
+        "CSI": 0.8557,
+        "ETS": 0.7551,
+        "Frequency_Bias": 0.9216,
+        "Hits": 599,
+        "Misses": 77,
+        "False_Alarms": 24
+      },
+      "Config3_Regime_Aware_ML_ModelB": {
+        "POD": 0.8876,
+        "FAR": 0.04,
+        "CSI": 0.8559,
+        "ETS": 0.7551,
+        "Frequency_Bias": 0.9246,
+        "Hits": 600,
+        "Misses": 76,
+        "False_Alarms": 25
+      }
+    },
+    "64.5": {
+      "Config0_Raw_NWP": {
+        "POD": 0.5781,
+        "FAR": 0.0089,
+        "CSI": 0.5751,
+        "ETS": 0.5401,
+        "Frequency_Bias": 0.5833,
+        "Hits": 111,
+        "Misses": 81,
+        "False_Alarms": 1
+      },
+      "Config1_Quantile_Mapping_EQM": {
+        "POD": 0.8125,
+        "FAR": 0.1746,
+        "CSI": 0.6933,
+        "ETS": 0.6554,
+        "Frequency_Bias": 0.9844,
+        "Hits": 156,
+        "Misses": 36,
+        "False_Alarms": 33
+      },
+      "Config2_Standard_ML_ModelA": {
+        "POD": 0.8125,
+        "FAR": 0.1658,
+        "CSI": 0.6996,
+        "ETS": 0.6624,
+        "Frequency_Bias": 0.974,
+        "Hits": 156,
+        "Misses": 36,
+        "False_Alarms": 31
+      },
+      "Config3_Regime_Aware_ML_ModelB": {
+        "POD": 0.8021,
+        "FAR": 0.163,
+        "CSI": 0.6937,
+        "ETS": 0.6563,
+        "Frequency_Bias": 0.9583,
+        "Hits": 154,
+        "Misses": 38,
+        "False_Alarms": 30
+      }
+    },
+    "115.6": {
+      "Config0_Raw_NWP": {
+        "POD": 0.375,
+        "FAR": 0.0,
+        "CSI": 0.375,
+        "ETS": 0.3633,
+        "Frequency_Bias": 0.375,
+        "Hits": 27,
+        "Misses": 45,
+        "False_Alarms": 0
+      },
+      "Config1_Quantile_Mapping_EQM": {
+        "POD": 0.8472,
+        "FAR": 0.0615,
+        "CSI": 0.8026,
+        "ETS": 0.794,
+        "Frequency_Bias": 0.9028,
+        "Hits": 61,
+        "Misses": 11,
+        "False_Alarms": 4
+      },
+      "Config2_Standard_ML_ModelA": {
+        "POD": 0.8472,
+        "FAR": 0.0469,
+        "CSI": 0.8133,
+        "ETS": 0.8052,
+        "Frequency_Bias": 0.8889,
+        "Hits": 61,
+        "Misses": 11,
+        "False_Alarms": 3
+      },
+      "Config3_Regime_Aware_ML_ModelB": {
+        "POD": 0.8611,
+        "FAR": 0.0606,
+        "CSI": 0.8158,
+        "ETS": 0.8076,
+        "Frequency_Bias": 0.9167,
+        "Hits": 62,
+        "Misses": 10,
+        "False_Alarms": 4
+      }
+    },
+    "204.5": {
+      "Config0_Raw_NWP": {
+        "POD": 0.2857,
+        "FAR": 0.0,
+        "CSI": 0.2857,
+        "ETS": 0.2838,
+        "Frequency_Bias": 0.2857,
+        "Hits": 4,
+        "Misses": 10,
+        "False_Alarms": 0
+      },
+      "Config1_Quantile_Mapping_EQM": {
+        "POD": 1.0,
+        "FAR": 0.125,
+        "CSI": 0.875,
+        "ETS": 0.8738,
+        "Frequency_Bias": 1.1429,
+        "Hits": 14,
+        "Misses": 0,
+        "False_Alarms": 2
+      },
+      "Config2_Standard_ML_ModelA": {
+        "POD": 0.7857,
+        "FAR": 0.0,
+        "CSI": 0.7857,
+        "ETS": 0.7841,
+        "Frequency_Bias": 0.7857,
+        "Hits": 11,
+        "Misses": 3,
+        "False_Alarms": 0
+      },
+      "Config3_Regime_Aware_ML_ModelB": {
+        "POD": 0.7857,
+        "FAR": 0.0,
+        "CSI": 0.7857,
+        "ETS": 0.7841,
+        "Frequency_Bias": 0.7857,
+        "Hits": 11,
+        "Misses": 3,
+        "False_Alarms": 0
+      }
+    }
+  },
+  "regime_stratified_verification": {
+    "ACTIVE_MONSOON": {
+      "sample_count": 720,
+      "models": {
+        "Config0_Raw_NWP": {
+          "MAE": 9.956,
+          "RMSE": 18.633,
+          "Mean_Bias": -7.409,
+          "Correlation": 0.977,
+          "CSI_64.5mm": 0.5517,
+          "POD_64.5mm": 0.5565
+        },
+        "Config1_Quantile_Mapping_EQM": {
+          "MAE": 6.191,
+          "RMSE": 9.531,
+          "Mean_Bias": -0.551,
+          "Correlation": 0.98,
+          "CSI_64.5mm": 0.6866,
+          "POD_64.5mm": 0.8
+        },
+        "Config2_Standard_ML_ModelA": {
+          "MAE": 6.057,
+          "RMSE": 12.636,
+          "Mean_Bias": -2.146,
+          "Correlation": 0.967,
+          "CSI_64.5mm": 0.7077,
+          "POD_64.5mm": 0.8
+        },
+        "Config3_Regime_Aware_ML_ModelB": {
+          "MAE": 5.949,
+          "RMSE": 12.235,
+          "Mean_Bias": -1.909,
+          "Correlation": 0.968,
+          "CSI_64.5mm": 0.6947,
+          "POD_64.5mm": 0.7913
+        }
+      }
+    },
+    "BREAK_MONSOON": {
+      "sample_count": 252,
+      "models": {
+        "Config0_Raw_NWP": {
+          "MAE": 6.277,
+          "RMSE": 11.424,
+          "Mean_Bias": -2.244,
+          "Correlation": 0.957,
+          "CSI_64.5mm": 0.4,
+          "POD_64.5mm": 0.4
+        },
+        "Config1_Quantile_Mapping_EQM": {
+          "MAE": 4.977,
+          "RMSE": 7.294,
+          "Mean_Bias": 0.452,
+          "Correlation": 0.967,
+          "CSI_64.5mm": 0.5,
+          "POD_64.5mm": 0.7333
+        },
+        "Config2_Standard_ML_ModelA": {
+          "MAE": 4.274,
+          "RMSE": 6.461,
+          "Mean_Bias": -1.377,
+          "Correlation": 0.976,
+          "CSI_64.5mm": 0.4762,
+          "POD_64.5mm": 0.6667
+        },
+        "Config3_Regime_Aware_ML_ModelB": {
+          "MAE": 4.17,
+          "RMSE": 6.493,
+          "Mean_Bias": -1.607,
+          "Correlation": 0.977,
+          "CSI_64.5mm": 0.5556,
+          "POD_64.5mm": 0.6667
+        }
+      }
+    },
+    "COASTAL_RAINFALL": {
+      "sample_count": 252,
+      "models": {
+        "Config0_Raw_NWP": {
+          "MAE": 8.043,
+          "RMSE": 15.871,
+          "Mean_Bias": -4.282,
+          "Correlation": 0.982,
+          "CSI_64.5mm": 0.5517,
+          "POD_64.5mm": 0.5517
+        },
+        "Config1_Quantile_Mapping_EQM": {
+          "MAE": 5.138,
+          "RMSE": 8.214,
+          "Mean_Bias": 0.27,
+          "Correlation": 0.983,
+          "CSI_64.5mm": 0.7097,
+          "POD_64.5mm": 0.7586
+        },
+        "Config2_Standard_ML_ModelA": {
+          "MAE": 4.593,
+          "RMSE": 8.919,
+          "Mean_Bias": -1.231,
+          "Correlation": 0.982,
+          "CSI_64.5mm": 0.6765,
+          "POD_64.5mm": 0.7931
+        },
+        "Config3_Regime_Aware_ML_ModelB": {
+          "MAE": 4.413,
+          "RMSE": 8.336,
+          "Mean_Bias": -1.141,
+          "Correlation": 0.984,
+          "CSI_64.5mm": 0.6471,
+          "POD_64.5mm": 0.7586
+        }
+      }
+    },
+    "MONSOON_LOW_DEPRESSION": {
+      "sample_count": 48,
+      "models": {
+        "Config0_Raw_NWP": {
+          "MAE": 7.044,
+          "RMSE": 13.399,
+          "Mean_Bias": -3.894,
+          "Correlation": 0.967,
+          "CSI_64.5mm": 0.6667,
+          "POD_64.5mm": 0.6667
+        },
+        "Config1_Quantile_Mapping_EQM": {
+          "MAE": 4.907,
+          "RMSE": 7.798,
+          "Mean_Bias": 0.163,
+          "Correlation": 0.972,
+          "CSI_64.5mm": 0.8333,
+          "POD_64.5mm": 0.8333
+        },
+        "Config2_Standard_ML_ModelA": {
+          "MAE": 4.745,
+          "RMSE": 7.237,
+          "Mean_Bias": 0.384,
+          "Correlation": 0.976,
+          "CSI_64.5mm": 0.8333,
+          "POD_64.5mm": 0.8333
+        },
+        "Config3_Regime_Aware_ML_ModelB": {
+          "MAE": 5.004,
+          "RMSE": 7.716,
+          "Mean_Bias": -0.041,
+          "Correlation": 0.972,
+          "CSI_64.5mm": 0.8333,
+          "POD_64.5mm": 0.8333
+        }
+      }
+    },
+    "OROGRAPHIC_RAINFALL": {
+      "sample_count": 192,
+      "models": {
+        "Config0_Raw_NWP": {
+          "MAE": 8.925,
+          "RMSE": 18.066,
+          "Mean_Bias": -5.383,
+          "Correlation": 0.977,
+          "CSI_64.5mm": 0.7778,
+          "POD_64.5mm": 0.7778
+        },
+        "Config1_Quantile_Mapping_EQM": {
+          "MAE": 5.81,
+          "RMSE": 9.894,
+          "Mean_Bias": 0.767,
+          "Correlation": 0.98,
+          "CSI_64.5mm": 0.8125,
+          "POD_64.5mm": 0.963
+        },
+        "Config2_Standard_ML_ModelA": {
+          "MAE": 5.038,
+          "RMSE": 8.649,
+          "Mean_Bias": -0.428,
+          "Correlation": 0.984,
+          "CSI_64.5mm": 0.8125,
+          "POD_64.5mm": 0.963
+        },
+        "Config3_Regime_Aware_ML_ModelB": {
+          "MAE": 4.946,
+          "RMSE": 8.587,
+          "Mean_Bias": -0.307,
+          "Correlation": 0.984,
+          "CSI_64.5mm": 0.7879,
+          "POD_64.5mm": 0.963
+        }
+      }
+    }
+  },
+  "spatial_fractions_skill_score": {
+    "scale_1x1": {
+      "Config0_Raw_NWP": 0.7303,
+      "Config1_Quantile_Mapping_EQM": 0.8189,
+      "Config2_Standard_ML_ModelA": 0.8232,
+      "Config3_Regime_Aware_ML_ModelB": 0.8191
+    },
+    "scale_3x3": {
+      "Config0_Raw_NWP": 0.788,
+      "Config1_Quantile_Mapping_EQM": 0.8907,
+      "Config2_Standard_ML_ModelA": 0.8891,
+      "Config3_Regime_Aware_ML_ModelB": 0.8896
+    },
+    "scale_5x5": {
+      "Config0_Raw_NWP": 0.7984,
+      "Config1_Quantile_Mapping_EQM": 0.907,
+      "Config2_Standard_ML_ModelA": 0.9025,
+      "Config3_Regime_Aware_ML_ModelB": 0.9051
+    }
+  },
+  "scientific_delta_gains": {
+    "RMSE_reduction_ModelB_vs_ModelA_pct": 2.95,
+    "MAE_reduction_ModelB_vs_ModelA_pct": 1.99,
+    "Total_RMSE_reduction_VARUNA_vs_RawNWP_pct": 39.48,
+    "CSI_heavy_rain_gain_vs_RawNWP_pct": 20.62,
+    "POD_heavy_rain_gain_vs_RawNWP": 0.224
+  },
+  "timestamp": "2026-08-30T15:32:57.335959"
+}

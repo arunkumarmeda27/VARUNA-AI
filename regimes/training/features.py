@@ -13,6 +13,7 @@ REGIME_FEATURE_COLS: List[str] = [
     "v200",
     "wind_speed_850",
     "wind_speed_200",
+    "wind_dir_850",           # LLJ direction discriminates coastal vs inland flow
     "vertical_wind_shear",
     "mslp",
     "tcwv",
@@ -24,6 +25,8 @@ REGIME_FEATURE_COLS: List[str] = [
     "orographic_flux_idx",
     "offshore_trough_idx",
     "convective_index",
+    "latitude",               # Location matters for regime expression
+    "longitude",
 ]
 
 TARGET_REGIME_COL: str = "true_regime"

@@ -2,7 +2,7 @@
 
 **Evaluation Period**: 2024-06-01 to 2024-09-30 (Independent Test Monsoon Season)  
 **Total Test Samples**: 1464 grid-day verification pairs  
-**Generated At**: 2026-08-30T11:58:10.258750  
+**Generated At**: 2026-08-30T12:39:13.630714  
 
 ---
 
@@ -10,8 +10,8 @@
 > **Research Question**: *"Can explicitly identifying the prevailing weather regime and using that information during rainfall post-processing improve raw NWP rainfall forecasts, especially for heavy and very heavy rainfall events?"*
 
 ### Key Findings:
-1. **Total Error Reduction**: VARUNA-AI reduced overall forecast RMSE from **16.889 mm** (Raw NWP) down to **9.978 mm**, delivering a **40.92% improvement**.
-2. **Drizzle Bias Elimination**: Raw NWP mean bias of **-5.601 mm** was successfully corrected to **-0.265 mm**.
+1. **Total Error Reduction**: VARUNA-AI reduced overall forecast RMSE from **16.889 mm** (Raw NWP) down to **10.221 mm**, delivering a **39.48% improvement**.
+2. **Drizzle Bias Elimination**: Raw NWP mean bias of **-5.601 mm** was successfully corrected to **-1.454 mm**.
 3. **Heavy Rainfall Detection Gain**: For heavy rainfall events (>= 64.5 mm), Critical Success Index (CSI) and Probability of Detection (POD) increased substantially over raw NWP.
 
 ---
@@ -21,8 +21,8 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Level 0: Raw NWP** | 8.763 | 16.889 | -5.601 | 0.977 |
 | **Level 1: Quantile Mapping (EQM)** | 5.709 | 8.96 | -0.041 | 0.98 |
-| **Level 2: Standard ML (Model A)** | 5.403 | 9.679 | -0.299 | 0.975 |
-| **Level 3: VARUNA-AI Regime-Aware (Model B)** | **5.421** | **9.978** | **-0.265** | **0.974** |
+| **Level 2: Standard ML (Model A)** | 5.322 | 10.532 | -1.548 | 0.973 |
+| **Level 3: VARUNA-AI Regime-Aware (Model B)** | **5.216** | **10.221** | **-1.454** | **0.975** |
 
 ---
 
@@ -31,24 +31,24 @@
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | $\\ge 2.5$ mm | Raw_NWP | 1040 | 263 | 106 | 0.907 | 0.202 | 0.738 | 0.051 |
 | $\\ge 2.5$ mm | Level1_Quantile_Mapping | 989 | 162 | 157 | 0.863 | 0.141 | 0.756 | 0.216 |
-| $\\ge 2.5$ mm | Level2_Standard_ML | 1106 | 117 | 40 | 0.965 | 0.096 | 0.876 | 0.486 |
-| $\\ge 2.5$ mm | VARUNA_AI_Level3_Regime_Aware | 1105 | 98 | 41 | 0.964 | 0.082 | 0.888 | 0.540 |
+| $\\ge 2.5$ mm | Level2_Standard_ML | 1048 | 47 | 98 | 0.914 | 0.043 | 0.878 | 0.568 |
+| $\\ge 2.5$ mm | VARUNA_AI_Level3_Regime_Aware | 1079 | 46 | 67 | 0.942 | 0.041 | 0.905 | 0.637 |
 | $\\ge 15.6$ mm | Raw_NWP | 607 | 40 | 69 | 0.898 | 0.062 | 0.848 | 0.739 |
 | $\\ge 15.6$ mm | Level1_Quantile_Mapping | 612 | 44 | 64 | 0.905 | 0.067 | 0.850 | 0.741 |
-| $\\ge 15.6$ mm | Level2_Standard_ML | 605 | 37 | 71 | 0.895 | 0.058 | 0.849 | 0.741 |
-| $\\ge 15.6$ mm | VARUNA_AI_Level3_Regime_Aware | 608 | 31 | 68 | 0.899 | 0.049 | 0.860 | 0.760 |
+| $\\ge 15.6$ mm | Level2_Standard_ML | 599 | 24 | 77 | 0.886 | 0.038 | 0.856 | 0.755 |
+| $\\ge 15.6$ mm | VARUNA_AI_Level3_Regime_Aware | 600 | 25 | 76 | 0.888 | 0.040 | 0.856 | 0.755 |
 | $\\ge 64.5$ mm | Raw_NWP | 111 | 1 | 81 | 0.578 | 0.009 | 0.575 | 0.540 |
 | $\\ge 64.5$ mm | Level1_Quantile_Mapping | 156 | 33 | 36 | 0.812 | 0.175 | 0.693 | 0.655 |
-| $\\ge 64.5$ mm | Level2_Standard_ML | 158 | 35 | 34 | 0.823 | 0.181 | 0.696 | 0.658 |
-| $\\ge 64.5$ mm | VARUNA_AI_Level3_Regime_Aware | 157 | 34 | 35 | 0.818 | 0.178 | 0.695 | 0.657 |
+| $\\ge 64.5$ mm | Level2_Standard_ML | 156 | 31 | 36 | 0.812 | 0.166 | 0.700 | 0.662 |
+| $\\ge 64.5$ mm | VARUNA_AI_Level3_Regime_Aware | 154 | 30 | 38 | 0.802 | 0.163 | 0.694 | 0.656 |
 | $\\ge 115.6$ mm | Raw_NWP | 27 | 0 | 45 | 0.375 | 0.000 | 0.375 | 0.363 |
 | $\\ge 115.6$ mm | Level1_Quantile_Mapping | 61 | 4 | 11 | 0.847 | 0.061 | 0.803 | 0.794 |
-| $\\ge 115.6$ mm | Level2_Standard_ML | 61 | 4 | 11 | 0.847 | 0.061 | 0.803 | 0.794 |
-| $\\ge 115.6$ mm | VARUNA_AI_Level3_Regime_Aware | 61 | 3 | 11 | 0.847 | 0.047 | 0.813 | 0.805 |
+| $\\ge 115.6$ mm | Level2_Standard_ML | 61 | 3 | 11 | 0.847 | 0.047 | 0.813 | 0.805 |
+| $\\ge 115.6$ mm | VARUNA_AI_Level3_Regime_Aware | 62 | 4 | 10 | 0.861 | 0.061 | 0.816 | 0.808 |
 | $\\ge 204.5$ mm | Raw_NWP | 4 | 0 | 10 | 0.286 | 0.000 | 0.286 | 0.284 |
 | $\\ge 204.5$ mm | Level1_Quantile_Mapping | 14 | 2 | 0 | 1.000 | 0.125 | 0.875 | 0.874 |
-| $\\ge 204.5$ mm | Level2_Standard_ML | 12 | 0 | 2 | 0.857 | 0.000 | 0.857 | 0.856 |
-| $\\ge 204.5$ mm | VARUNA_AI_Level3_Regime_Aware | 13 | 0 | 1 | 0.929 | 0.000 | 0.929 | 0.928 |
+| $\\ge 204.5$ mm | Level2_Standard_ML | 11 | 0 | 3 | 0.786 | 0.000 | 0.786 | 0.784 |
+| $\\ge 204.5$ mm | VARUNA_AI_Level3_Regime_Aware | 11 | 0 | 3 | 0.786 | 0.000 | 0.786 | 0.784 |
 
 ---
 

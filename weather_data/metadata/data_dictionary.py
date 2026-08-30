@@ -18,6 +18,7 @@ IMD_RAINFALL_CATEGORIES: Dict[str, Tuple[float, float]] = {
 
 # Standard Operational Verification Thresholds (mm/day)
 OPERATIONAL_THRESHOLDS: List[float] = [2.5, 15.6, 64.5, 115.6, 204.5]
+IMD_PRECIP_THRESHOLDS: List[float] = OPERATIONAL_THRESHOLDS
 
 # Recognized Weather Regimes
 WEATHER_REGIMES: List[str] = [
