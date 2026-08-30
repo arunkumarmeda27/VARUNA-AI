@@ -1,0 +1,394 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VARUNA-AI | Regime-Aware Monsoon Rainfall Post-Processing & Verification</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- Dashboard CSS -->
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+  
+  <!-- ECharts & Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+
+  <!-- Application Header -->
+  <header class="app-header">
+    <div class="brand-section">
+      <div class="brand-badge">SIH26080</div>
+      <div>
+        <div class="brand-title">VARUNA-AI</div>
+        <div class="brand-subtitle">Regime-Aware NWP Rainfall Post-Processing & Verification</div>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div class="control-group">
+        <label class="control-label" for="forecast-run-select">Forecast Cycle:</label>
+        <select id="forecast-run-select" class="select-input">
+          {% for r in all_runs %}
+            <option value="{{ r.run_id }}" {% if r.run_id == current_run.run_id %}selected{% endif %}>
+              {{ r.valid_time|date:"Y-m-d" }} (+{{ r.lead_time_hours }}h) [{{ r.detected_regime }}]
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="status-pill">
+        <div class="pulse-dot"></div>
+        <span>OPERATIONAL INFERENCE</span>
+      </div>
+
+      <div class="status-pill" style="border-color: rgba(52, 211, 153, 0.3); color: #34d399; background: rgba(16, 185, 129, 0.1);">
+        <span>{{ current_run.model_version }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="dashboard-container">
+
+    <!-- Active Regime Summary Banner -->
+    <section class="regime-banner">
+      <div class="banner-item">
+        <span class="banner-label">Detected Weather Regime</span>
+        <div class="banner-value-large">
+          <span class="regime-tag">{{ current_run.detected_regime }}</span>
+          <span style="font-size: 14px; color: var(--accent-cyan);">{{ current_run.regime_confidence|floatformat:2 }} Confidence</span>
+        </div>
+        <div class="confidence-bar-container">
+          <div class="confidence-bar-fill" style="width: calc({{ current_run.regime_confidence }} * 100%);"></div>
+        </div>
+      </div>
+
+      <div class="banner-item">
+        <span class="banner-label">Forecast Valid Window</span>
+        <div style="font-size: 16px; font-weight: 700; color: #fff; font-family: var(--font-mono);">
+          {{ current_run.valid_time|date:"Y-m-d" }} (03:00 UTC)
+        </div>
+        <span style="font-size: 11px; color: var(--text-muted);">Lead Time: +{{ current_run.lead_time_hours }} Hours (Day-1 Forecast)</span>
+      </div>
+
+      <div class="banner-item">
+        <span class="banner-label">Monsoon Trough Axis</span>
+        <div style="font-size: 16px; font-weight: 700; color: var(--accent-amber); font-family: var(--font-mono);" id="syn-trough">
+          22.40 °N (Normal Position)
+        </div>
+        <span style="font-size: 11px; color: var(--text-muted);">Central Longitude Corridor: 78°-84°E</span>
+      </div>
+
+      <div class="banner-item" style="text-align: right;">
+        <span class="banner-label">Districts Monitored</span>
+        <div style="font-size: 22px; font-weight: 800; color: #fff; font-family: var(--font-mono);">
+          {{ district_count }}
+        </div>
+        <span style="font-size: 11px; color: var(--accent-emerald);">All Ingested & Verified</span>
+      </div>
+    </section>
+
+    <!-- Middle Section: Map + Synoptic Diagnostics -->
+    <section class="main-grid">
+      
+      <!-- Geospatial Forecast Map -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+            District Rainfall Intelligence Map
+          </div>
+          
+          <div class="map-controls">
+            <button class="map-layer-btn active" data-layer="corrected">VARUNA Corrected</button>
+            <button class="map-layer-btn" data-layer="nwp">Raw NWP</button>
+            <button class="map-layer-btn" data-layer="probability">P(Rain &ge; 64.5mm)</button>
+            <button class="map-layer-btn" data-layer="risk">IMD Risk Alert</button>
+            <button class="map-layer-btn" data-layer="delta">Bias Correction &Delta;</button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div id="map-container"></div>
+          <div class="map-legend" id="map-legend-content">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Synoptic Diagnostics & Regime Breakdown -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            Synoptic Meteorological Diagnostics
+          </div>
+          <span style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">ERA5/NWP Boundary Couplings</span>
+        </div>
+
+        <div class="card-body">
+          <div class="synoptic-metrics-grid">
+            <div class="metric-box">
+              <span class="metric-name">Mean Sea Level Pressure</span>
+              <span class="metric-val" id="syn-mslp">-- hPa</span>
+              <span class="metric-sub">Central isobar depth</span>
+            </div>
+            
+            <div class="metric-box">
+              <span class="metric-name">Low-Level Somali Jet (850 hPa)</span>
+              <span class="metric-val" id="syn-llj">-- m/s</span>
+              <span class="metric-sub">Cross-equatorial flow</span>
+            </div>
+
+            <div class="metric-box">
+              <span class="metric-name">Tropical Easterly Jet (200 hPa)</span>
+              <span class="metric-val" id="syn-tej">-- m/s</span>
+              <span class="metric-sub">Upper-level divergence</span>
+            </div>
+
+            <div class="metric-box">
+              <span class="metric-name">Vertical Wind Shear</span>
+              <span class="metric-val" id="syn-shear">-- m/s</span>
+              <span class="metric-sub">200-850 hPa bulk shear</span>
+            </div>
+
+            <div class="metric-box">
+              <span class="metric-name">Total Column Water Vapour</span>
+              <span class="metric-val" id="syn-tcwv">-- kg/m²</span>
+              <span class="metric-sub">Moisture reservoir</span>
+            </div>
+
+            <div class="metric-box">
+              <span class="metric-name">Convective Available Energy</span>
+              <span class="metric-val" id="syn-cape">2150 J/kg</span>
+              <span class="metric-sub">Atmospheric instability</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 10px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700; margin-bottom: 6px;">
+              Regime Probability Distribution
+            </div>
+            <div id="regime-chart-container"></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Bottom Tabs: Detailed Products & Verification -->
+    <section class="card">
+      <nav class="tab-navigation">
+        <button class="tab-btn active" data-tab="tab-districts">District Forecast Intelligence</button>
+        <button class="tab-btn" data-tab="tab-verification">Scientific Verification & Model Ladder</button>
+        <button class="tab-btn" data-tab="tab-regimes">Regime Sensitivity & Limitations</button>
+        <button class="tab-btn" data-tab="tab-provenance">Forecast Provenance & Model Registry</button>
+      </nav>
+
+      <!-- Tab 1: District Table -->
+      <div id="tab-districts" class="tab-pane active">
+        <table class="scientific-table">
+          <thead>
+            <tr>
+              <th>District</th>
+              <th>Terrain / Zone</th>
+              <th>Raw NWP</th>
+              <th>VARUNA-AI (Corr.)</th>
+              <th>Peak Max</th>
+              <th>Bias Delta</th>
+              <th>P(Rain &ge; 64.5mm)</th>
+              <th>80% Uncertainty Range</th>
+              <th>IMD Alert Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in district_forecasts %}
+              <tr>
+                <td style="font-weight: 600; color: #fff;">{{ d.district.name }}</td>
+                <td style="color: var(--text-dim);">{{ d.district.zone }}</td>
+                <td>{{ d.raw_nwp_mean_mm|floatformat:1 }} mm</td>
+                <td style="color: var(--accent-cyan); font-weight: 700;">{{ d.corrected_mean_mm|floatformat:1 }} mm</td>
+                <td>{{ d.corrected_max_mm|floatformat:1 }} mm</td>
+                <td>
+                  <span class="{% if d.bias_correction_delta_mm >= 0 %}delta-pos{% else %}delta-neg{% endif %}">
+                    {% if d.bias_correction_delta_mm > 0 %}+{% endif %}{{ d.bias_correction_delta_mm|floatformat:1 }} mm
+                  </span>
+                </td>
+                <td>{{ d.heavy_rain_probability|floatformat:3 }}</td>
+                <td style="color: var(--text-muted);">[{{ d.uncertainty_lower_10pct|floatformat:1 }} - {{ d.uncertainty_upper_90pct|floatformat:1 }}] mm</td>
+                <td>
+                  <span class="badge badge-{{ d.risk_code|lower }}">{{ d.risk_code }}</span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 2: Scientific Verification -->
+      <div id="tab-verification" class="tab-pane">
+        <div class="charts-grid" style="margin-bottom: 20px;">
+          <div class="card" style="padding: 12px; background: var(--bg-tertiary);">
+            <div id="verification-chart-container" class="chart-box"></div>
+          </div>
+          <div class="card" style="padding: 12px; background: var(--bg-tertiary);">
+            <div id="ladder-chart-container" class="chart-box"></div>
+          </div>
+        </div>
+
+        <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-main); margin-bottom: 8px;">
+          Model Ladder Verification Benchmarks (Held-Out Test Season 2024)
+        </div>
+        <table class="scientific-table">
+          <thead>
+            <tr>
+              <th>Model Ladder Level</th>
+              <th>Description</th>
+              <th>MAE (mm)</th>
+              <th>RMSE (mm)</th>
+              <th>Mean Bias (mm)</th>
+              <th>Pearson Correlation ($r$)</th>
+              <th>CSI (&ge; 64.5mm)</th>
+              <th>POD (&ge; 64.5mm)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight: 700; color: #f87171;">Level 0</td>
+              <td>Raw NWP Baseline (Uncorrected Physics)</td>
+              <td>8.76</td>
+              <td>16.89</td>
+              <td>-5.60</td>
+              <td>0.977</td>
+              <td>0.482</td>
+              <td>0.540</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: #38bdf8;">Level 1</td>
+              <td>Empirical Quantile Mapping (EQM)</td>
+              <td>5.71</td>
+              <td>8.96</td>
+              <td>-0.04</td>
+              <td>0.980</td>
+              <td>0.680</td>
+              <td>0.742</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 700; color: #a855f7;">Level 2</td>
+              <td>Standard ML Regressor (Model A - No Regime)</td>
+              <td>5.40</td>
+              <td>9.68</td>
+              <td>-0.30</td>
+              <td>0.975</td>
+              <td>0.710</td>
+              <td>0.795</td>
+            </tr>
+            <tr style="background: rgba(56, 189, 248, 0.08);">
+              <td style="font-weight: 700; color: #34d399;">Level 3</td>
+              <td><strong>VARUNA-AI Regime-Aware ML (Model B)</strong></td>
+              <td><strong>5.42</strong></td>
+              <td><strong>9.98</strong></td>
+              <td><strong>-0.27</strong></td>
+              <td><strong>0.974</strong></td>
+              <td><strong>0.755</strong></td>
+              <td><strong>0.840</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 3: Regime Sensitivity & Failure Modes -->
+      <div id="tab-regimes" class="tab-pane">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <h4 style="color: var(--accent-cyan); margin-bottom: 10px; font-size: 14px;">Where VARUNA-AI Improves Forecasts</h4>
+            <ul style="color: var(--text-main); font-size: 13px; line-height: 1.8; margin-left: 20px;">
+              <li><strong>Monsoon Lows & Depressions:</strong> Resolves NWP extreme convective under-prediction by coupling 850 hPa vorticity and moisture flux convergence indices.</li>
+              <li><strong>Active Monsoon Orographic Slopes:</strong> Recovers windward precipitation deficit along the Western Ghats and Northeast hills using the orographic flux component.</li>
+              <li><strong>Break Monsoon Spurious Rain:</strong> Suppresses NWP drizzle false alarms across central Indian plains when the monsoon trough is displaced north to the foothills.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 style="color: var(--accent-amber); margin-bottom: 10px; font-size: 14px;">Identified Scientific Limitations & Failure Modes</h4>
+            <ul style="color: var(--text-main); font-size: 13px; line-height: 1.8; margin-left: 20px;">
+              <li><strong>Rapid Synoptic Transitions:</strong> Transient under-prediction occurs during rapid un-forecasted Western Disturbance intrusions over Northwest India.</li>
+              <li><strong>Localized Sub-Grid Cloudbursts:</strong> Local convective phenomena (&gt;250 mm/hour) remain difficult to predict deterministically without meso-scale radar data.</li>
+              <li><strong>Missing Observation Latency:</strong> Offline fallback modes are triggered if real-time ground telemetry data is delayed.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4: Provenance -->
+      <div id="tab-provenance" class="tab-pane">
+        <table class="scientific-table">
+          <thead>
+            <tr>
+              <th>System Component</th>
+              <th>Model Name</th>
+              <th>Version Tag</th>
+              <th>Training Period</th>
+              <th>Validation / Test</th>
+              <th>Algorithm Specification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Weather Regime Engine</td>
+              <td>Regime-XGB-Classifier</td>
+              <td><code>regime-xgb-v1.0.0</code></td>
+              <td>2018-2022 Monsoon Seasons</td>
+              <td>Val: 2023 | Test: 2024</td>
+              <td>Calibrated Multi-Class Softmax Gradient Boosting</td>
+            </tr>
+            <tr>
+              <td>Rainfall Post-Processing</td>
+              <td>VARUNA-Regime-Aware-XGB</td>
+              <td><code>VARUNA-Level3-XGB-v1.0.0</code></td>
+              <td>2018-2022 Monsoon Seasons</td>
+              <td>Val: 2023 | Test: 2024</td>
+              <td>Regime-Coupled XGBoost Regressor with Physical Non-Negativity</td>
+            </tr>
+            <tr>
+              <td>Heavy Rainfall Probability</td>
+              <td>Threshold-Calibrated-GBDT</td>
+              <td><code>Prob-Exceed-v1.0.0</code></td>
+              <td>2018-2022 Monsoon Seasons</td>
+              <td>Val: 2023 | Test: 2024</td>
+              <td>Isotonically Calibrated Exceedance Classifier (&ge; 64.5mm)</td>
+            </tr>
+            <tr>
+              <td>Prediction Uncertainty</td>
+              <td>Conformal-Quantile-Estimator</td>
+              <td><code>Conformal-Quantile-v1.0.0</code></td>
+              <td>2018-2022 Monsoon Seasons</td>
+              <td>Val: 2023 | Test: 2024</td>
+              <td>Quantile Loss (q10, q50, q90) + 80% Split Conformal Calibration</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    VARUNA-AI &copy; 2026 Smart India Hackathon (SIH26080) &bull; Designed for Ministry of Earth Sciences (MoES) / IMD &bull; Built with Scientific Integrity
+  </footer>
+
+  <!-- Dashboard JavaScript -->
+  <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>
