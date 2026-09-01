@@ -4,12 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VARUNA-AI | Regime-Aware Monsoon Rainfall Post-Processing & Verification</title>
+  <title>VARUNA-AI | Regime-Aware Monsoon Rainfall AI Post-Processing</title>
   
-  <!-- Fonts -->
+  <!-- Modern Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -21,283 +21,649 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
-<body>
+<body class="dark-theme">
 
-  <!-- Application Header -->
-  <header class="app-header">
-    <div class="brand-section">
-      <div class="brand-badge">SIH26080</div>
-      <div>
-        <div class="brand-title">VARUNA-AI</div>
-        <div class="brand-subtitle">Regime-Aware NWP Rainfall Post-Processing & Verification</div>
-      </div>
-    </div>
+  <!-- App Wrapper -->
+  <div class="app-layout">
 
-    <div class="header-controls">
-      <div class="control-group">
-        <label class="control-label" for="forecast-run-select">Forecast Cycle:</label>
-        <select id="forecast-run-select" class="select-input">
-          {% for r in all_runs %}
-            <option value="{{ r.run_id }}" {% if r.run_id == current_run.run_id %}selected{% endif %}>
-              {{ r.valid_time|date:"Y-m-d" }} (+{{ r.lead_time_hours }}h) [{{ r.detected_regime }}]
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="status-pill">
-        <div class="pulse-dot"></div>
-        <span>OPERATIONAL INFERENCE</span>
-      </div>
-
-      <div class="status-pill" style="border-color: rgba(52, 211, 153, 0.3); color: #34d399; background: rgba(16, 185, 129, 0.1);">
-        <span>{{ current_run.model_version }}</span>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Container -->
-  <main class="dashboard-container">
-
-    <!-- Active Regime Summary Banner -->
-    <section class="regime-banner">
-      <div class="banner-item">
-        <span class="banner-label">Detected Weather Regime</span>
-        <div class="banner-value-large">
-          <span class="regime-tag">{{ current_run.detected_regime }}</span>
-          <span style="font-size: 14px; color: var(--accent-cyan);">{{ current_run.regime_confidence|floatformat:2 }} Confidence</span>
+    <!-- ==================== LEFT SIDEBAR NAVIGATION ==================== -->
+    <aside class="app-sidebar">
+      <!-- Sidebar Brand -->
+      <div class="sidebar-brand">
+        <div class="brand-icon-wrapper">
+          <svg class="brand-cloud-icon" viewBox="0 0 48 48" fill="none">
+            <defs>
+              <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#2563eb"/>
+              </linearGradient>
+              <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            <path d="M38 29.5C41.59 29.5 44.5 26.59 44.5 23C44.5 19.55 41.82 16.72 38.43 16.53C37.38 10.65 32.22 6.2 26 6.2C20.65 6.2 16.03 9.49 14.28 14.21C13.71 14.07 13.11 14 12.5 14C8.36 14 5 17.36 5 21.5C5 25.42 8.01 28.64 11.85 28.97" stroke="url(#cloudGrad)" stroke-width="3" stroke-linecap="round" filter="url(#glow)"/>
+            <path d="M16 34L14 39M24 34L22 41M32 34L30 39" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
         </div>
-        <div class="confidence-bar-container">
-          <div class="confidence-bar-fill" style="width: calc({{ current_run.regime_confidence }} * 100%);"></div>
+        <div class="brand-text">
+          <span class="brand-title-text">VARUNA<span class="brand-ai-badge">AI</span></span>
+          <span class="brand-sub-tag">Regime-Aware NWP Post-Processing</span>
         </div>
       </div>
 
-      <div class="banner-item">
-        <span class="banner-label">Forecast Valid Window</span>
-        <div style="font-size: 16px; font-weight: 700; color: #fff; font-family: var(--font-mono);">
-          {{ current_run.valid_time|date:"Y-m-d" }} (03:00 UTC)
-        </div>
-        <span style="font-size: 11px; color: var(--text-muted);">Lead Time: +{{ current_run.lead_time_hours }} Hours (Day-1 Forecast)</span>
-      </div>
-
-      <div class="banner-item">
-        <span class="banner-label">Monsoon Trough Axis</span>
-        <div style="font-size: 16px; font-weight: 700; color: var(--accent-amber); font-family: var(--font-mono);" id="syn-trough">
-          22.40 °N (Normal Position)
-        </div>
-        <span style="font-size: 11px; color: var(--text-muted);">Central Longitude Corridor: 78°-84°E</span>
-      </div>
-
-      <div class="banner-item" style="text-align: right;">
-        <span class="banner-label">Districts Monitored</span>
-        <div style="font-size: 22px; font-weight: 800; color: #fff; font-family: var(--font-mono);">
-          {{ district_count }}
-        </div>
-        <span style="font-size: 11px; color: var(--accent-emerald);">All Ingested & Verified</span>
-      </div>
-    </section>
-
-    <!-- Middle Section: Map + Synoptic Diagnostics -->
-    <section class="main-grid">
-      
-      <!-- Geospatial Forecast Map -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-            District Rainfall Intelligence Map
-          </div>
-          
-          <div class="map-controls">
-            <button class="map-layer-btn active" data-layer="corrected">VARUNA Corrected</button>
-            <button class="map-layer-btn" data-layer="nwp">Raw NWP</button>
-            <button class="map-layer-btn" data-layer="probability">P(Rain &ge; 64.5mm)</button>
-            <button class="map-layer-btn" data-layer="risk">IMD Risk Alert</button>
-            <button class="map-layer-btn" data-layer="delta">Bias Correction &Delta;</button>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div id="map-container"></div>
-          <div class="map-legend" id="map-legend-content">
-            <!-- Populated via JS -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Synoptic Diagnostics & Regime Breakdown -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            Synoptic Meteorological Diagnostics
-          </div>
-          <span style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">ERA5/NWP Boundary Couplings</span>
-        </div>
-
-        <div class="card-body">
-          <div class="synoptic-metrics-grid">
-            <div class="metric-box">
-              <span class="metric-name">Mean Sea Level Pressure</span>
-              <span class="metric-val" id="syn-mslp">-- hPa</span>
-              <span class="metric-sub">Central isobar depth</span>
-            </div>
-            
-            <div class="metric-box">
-              <span class="metric-name">Low-Level Somali Jet (850 hPa)</span>
-              <span class="metric-val" id="syn-llj">-- m/s</span>
-              <span class="metric-sub">Cross-equatorial flow</span>
-            </div>
-
-            <div class="metric-box">
-              <span class="metric-name">Tropical Easterly Jet (200 hPa)</span>
-              <span class="metric-val" id="syn-tej">-- m/s</span>
-              <span class="metric-sub">Upper-level divergence</span>
-            </div>
-
-            <div class="metric-box">
-              <span class="metric-name">Vertical Wind Shear</span>
-              <span class="metric-val" id="syn-shear">-- m/s</span>
-              <span class="metric-sub">200-850 hPa bulk shear</span>
-            </div>
-
-            <div class="metric-box">
-              <span class="metric-name">Total Column Water Vapour</span>
-              <span class="metric-val" id="syn-tcwv">-- kg/m²</span>
-              <span class="metric-sub">Moisture reservoir</span>
-            </div>
-
-            <div class="metric-box">
-              <span class="metric-name">Convective Available Energy</span>
-              <span class="metric-val" id="syn-cape">2150 J/kg</span>
-              <span class="metric-sub">Atmospheric instability</span>
-            </div>
-          </div>
-
-          <div style="margin-top: 10px;">
-            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-dim); font-weight: 700; margin-bottom: 6px;">
-              Regime Probability Distribution
-            </div>
-            <div id="regime-chart-container"></div>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Bottom Tabs: Detailed Products & Verification -->
-    <section class="card">
-      <nav class="tab-navigation">
-        <button class="tab-btn active" data-tab="tab-districts">District Forecast Intelligence</button>
-        <button class="tab-btn" data-tab="tab-verification">Scientific Verification & Model Ladder</button>
-        <button class="tab-btn" data-tab="tab-regimes">Regime Sensitivity & Limitations</button>
-        <button class="tab-btn" data-tab="tab-provenance">Forecast Provenance & Model Registry</button>
+      <!-- Navigation Menu Items -->
+      <nav class="sidebar-nav">
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#dashboard" class="nav-link active" data-view="dashboard">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#forecast-map" class="nav-link" data-view="forecast-map">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              <span>Forecast Map</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#district-forecast" class="nav-link" data-view="district-forecast">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>District Forecast</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#regime-analysis" class="nav-link" data-view="regime-analysis">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span>Regime Analysis</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#model-performance" class="nav-link" data-view="model-performance">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              <span>Model Performance</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#verification-report" class="nav-link" data-view="verification-report">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Verification Report</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#alerts" class="nav-link" data-view="alerts">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span>Alerts & Notifications</span>
+              <span class="nav-badge alert-count">2</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#historical-data" class="nav-link" data-view="historical-data">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Historical Data</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#data-sources" class="nav-link" data-view="data-sources">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+              <span>Data Sources</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#settings" class="nav-link" data-view="settings">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Settings</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#help" class="nav-link" data-view="help">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Help & Documentation</span>
+            </a>
+          </li>
+        </ul>
       </nav>
 
-      <!-- Tab 1: District Table -->
-      <div id="tab-districts" class="tab-pane active">
-        <table class="scientific-table">
+      <!-- Sidebar Footer Status Card -->
+      <div class="sidebar-status-card">
+        <div class="status-indicator-header">
+          <span class="live-dot-pulse"></span>
+          <span class="status-title">System Status</span>
+        </div>
+        <div class="status-all-operational">+ All Systems Operational</div>
+        <div class="status-meta">
+          <span class="status-meta-label">Last Updated</span>
+          <span class="status-meta-val" id="status-last-updated">18 May 2025 06:00 AM</span>
+        </div>
+        <div class="status-refresh-control">
+          <span class="refresh-label">Auto Refresh</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="auto-refresh-toggle" checked>
+            <span class="toggle-slider">
+              <span class="toggle-text-on">ON</span>
+              <span class="toggle-text-off">OFF</span>
+            </span>
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <div class="main-viewport">
+
+      <!-- Top Header Navigation Bar -->
+      <header class="dashboard-header">
+        <div class="header-titles">
+          <h1 class="header-main-title">Regime-Aware AI Post-Processing</h1>
+          <p class="header-sub-title">of Monsoon Rainfall Forecasts</p>
+        </div>
+
+        <div class="header-actions">
+          <!-- Date Filter Dropdown -->
+          <div class="header-select-pill date-picker-pill">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <select id="forecast-date-select" class="header-dropdown">
+              <option value="2025-05-18" selected>18 May 2025</option>
+              <option value="2025-05-19">19 May 2025</option>
+              <option value="2025-05-20">20 May 2025</option>
+              <option value="2025-05-21">21 May 2025</option>
+            </select>
+          </div>
+
+          <!-- Time Cycle Dropdown -->
+          <div class="header-select-pill time-picker-pill">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <select id="forecast-cycle-select" class="header-dropdown">
+              <option value="06:00" selected>06:00 AM IST</option>
+              <option value="00:00">00:00 UTC (05:30 IST)</option>
+              <option value="12:00">12:00 UTC (17:30 IST)</option>
+            </select>
+          </div>
+
+          <!-- Theme Mode Toggle Button -->
+          <button id="btn-theme-toggle" class="header-theme-toggle-btn" title="Toggle Light / Dark Mode">
+            <span class="theme-mode-indicator theme-dark-mode">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              <span>Dark</span>
+            </span>
+            <span class="theme-mode-indicator theme-light-mode hidden">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+              <span>Light</span>
+            </span>
+          </button>
+
+          <!-- Refresh Action Button -->
+          <button id="btn-manual-refresh" class="header-refresh-btn" title="Refresh Live Data">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Main Dashboard Content -->
+      <main class="dashboard-scrollable-body">
+
+        <!-- ==================== TOP 5 KPI CARDS ==================== -->
+        <section class="kpi-grid">
+          
+          <!-- Card 1: Current Weather Regime -->
+          <div class="kpi-card glass-panel regime-kpi">
+            <div class="kpi-icon-disc disc-blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path><line x1="8" y1="19" x2="8" y2="21"></line><line x1="8" y1="13" x2="8" y2="15"></line><line x1="16" y1="19" x2="16" y2="21"></line><line x1="16" y1="13" x2="16" y2="15"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="12" y1="15" x2="12" y2="17"></line></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-title">Current Weather Regime</span>
+              <div class="kpi-value-row">
+                <span class="kpi-main-val val-cyan" id="kpi-regime-name">Active Monsoon</span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="kpi-confidence-pill" id="kpi-regime-conf">Confidence 78%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Forecast Rainfall (Avg.) -->
+          <div class="kpi-card glass-panel rainfall-kpi">
+            <div class="kpi-icon-disc disc-cyan">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-title">Forecast Rainfall (Avg.)</span>
+              <div class="kpi-value-row">
+                <span class="kpi-main-val val-white" id="kpi-rainfall-avg">62.4 <span class="unit-text">mm</span></span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="kpi-sub-label">AI Corrected (24h)</span>
+                <span class="kpi-delta-tag tag-green">↑ 28% <span class="delta-vs">vs Raw NWP</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Heavy Rain Probability -->
+          <div class="kpi-card glass-panel prob-kpi">
+            <div class="kpi-icon-disc disc-red">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-title">Heavy Rain Probability</span>
+              <div class="kpi-value-row">
+                <span class="kpi-main-val val-red" id="kpi-heavy-prob">82%</span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="kpi-sub-label">&gt; 64.5 mm Threshold</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Data Quality -->
+          <div class="kpi-card glass-panel quality-kpi">
+            <div class="kpi-icon-disc disc-emerald">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-title">Data Quality</span>
+              <div class="kpi-value-row">
+                <span class="kpi-main-val val-emerald" id="kpi-data-quality">Good</span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="kpi-sub-label">All key data sources operational</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Coverage -->
+          <div class="kpi-card glass-panel coverage-kpi">
+            <div class="kpi-icon-disc disc-purple">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="22" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="2" y2="12"></line><line x1="12" y1="6" x2="12" y2="2"></line><line x1="12" y1="22" x2="12" y2="18"></line></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-title">Coverage</span>
+              <div class="kpi-value-row">
+                <span class="kpi-main-val val-purple" id="kpi-coverage-count">687</span>
+              </div>
+              <div class="kpi-sub-row">
+                <span class="kpi-sub-label">Districts Updated</span>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== MIDDLE ROW: MAP & CHARTS ==================== -->
+        <section class="middle-dashboard-grid">
+          
+          <!-- LEFT COLUMN: District Rainfall Forecast Map -->
+          <div class="dashboard-panel glass-panel map-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <span class="panel-main-title">District-wise Rainfall Forecast</span>
+              </div>
+              <div class="panel-actions-group">
+                <div class="toggle-pill-group">
+                  <button class="pill-btn active" data-map-mode="rainfall" id="btn-layer-rainfall">Rainfall (mm)</button>
+                  <button class="pill-btn" data-map-mode="probability" id="btn-layer-prob">Probability (%)</button>
+                </div>
+                <button class="panel-icon-btn" id="btn-fullscreen-map" title="Toggle Fullscreen Map">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="panel-body map-body-relative">
+              <!-- Leaflet Map Container -->
+              <div id="district-forecast-map" class="map-view-canvas"></div>
+
+              <!-- Vertical Rainfall Color Legend -->
+              <div class="map-vertical-legend" id="map-vertical-legend">
+                <span class="legend-header-text" id="legend-header-text">Rainfall (mm)</span>
+                <div class="legend-gradient-bar-wrapper">
+                  <div class="legend-gradient-stripe" id="legend-gradient-stripe"></div>
+                  <div class="legend-gradient-labels" id="legend-gradient-labels">
+                    <span>150+</span>
+                    <span>100</span>
+                    <span>75</span>
+                    <span>50</span>
+                    <span>25</span>
+                    <span>10</span>
+                    <span>0</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Map Overlay Floating District Spotlight -->
+              <div class="district-spotlight-card hidden" id="district-spotlight">
+                <div class="spotlight-header">
+                  <strong id="spotlight-district-name">Bengaluru Urban</strong>
+                  <button class="spotlight-close" id="btn-close-spotlight">×</button>
+                </div>
+                <div class="spotlight-body">
+                  <div class="spotlight-stat"><span class="sp-lbl">AI Corrected:</span> <span class="sp-val val-cyan" id="sp-corr">82.0 mm</span></div>
+                  <div class="spotlight-stat"><span class="sp-lbl">Raw NWP:</span> <span class="sp-val" id="sp-nwp">40.0 mm</span></div>
+                  <div class="spotlight-stat"><span class="sp-lbl">Observed:</span> <span class="sp-val val-emerald" id="sp-obs">68.0 mm</span></div>
+                  <div class="spotlight-stat"><span class="sp-lbl">P(Rain &ge; 64.5mm):</span> <span class="sp-val val-red" id="sp-prob">88.0%</span></div>
+                  <div class="spotlight-stat"><span class="sp-lbl">IMD Alert:</span> <span class="badge badge-red" id="sp-risk">RED</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: Multi-Chart Stack -->
+          <div class="right-chart-stack">
+            
+            <!-- Top Chart: Regime Distribution (Today) -->
+            <div class="dashboard-panel glass-panel regime-chart-panel">
+              <div class="panel-header">
+                <span class="panel-main-title">Regime Distribution <span class="header-badge-tag">(Today)</span></span>
+                <a href="#view-regime-details" class="panel-action-link" id="link-view-regimes">View Details &rarr;</a>
+              </div>
+              <div class="panel-body donut-chart-body">
+                <div class="donut-chart-container" id="regime-donut-chart"></div>
+                
+                <!-- Custom Chart Legend Column -->
+                <div class="custom-regime-legend" id="custom-regime-legend">
+                  <div class="legend-row">
+                    <span class="legend-dot" style="background:#3b82f6;"></span>
+                    <span class="legend-name">Active Monsoon</span>
+                    <span class="legend-percent">78%</span>
+                  </div>
+                  <div class="legend-row">
+                    <span class="legend-dot" style="background:#ef4444;"></span>
+                    <span class="legend-name">Monsoon Depression</span>
+                    <span class="legend-percent">15%</span>
+                  </div>
+                  <div class="legend-row">
+                    <span class="legend-dot" style="background:#10b981;"></span>
+                    <span class="legend-name">Coastal Rainfall</span>
+                    <span class="legend-percent">4%</span>
+                  </div>
+                  <div class="legend-row">
+                    <span class="legend-dot" style="background:#f59e0b;"></span>
+                    <span class="legend-name">Break Monsoon</span>
+                    <span class="legend-percent">3%</span>
+                  </div>
+                  <div class="legend-row">
+                    <span class="legend-dot" style="background:#06b6d4;"></span>
+                    <span class="legend-name">Orographic Rainfall</span>
+                    <span class="legend-percent">0%</span>
+                  </div>
+                  <div class="legend-row">
+                    <span class="legend-dot" style="background:#8b5cf6;"></span>
+                    <span class="legend-name">Western Disturbance</span>
+                    <span class="legend-percent">0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Chart: Forecast Comparison (24 Hours) -->
+            <div class="dashboard-panel glass-panel forecast-comparison-panel">
+              <div class="panel-header">
+                <div class="panel-title-group">
+                  <span class="panel-main-title">Forecast Comparison <span class="header-badge-tag">(24 Hours)</span></span>
+                </div>
+                <a href="#view-full-comparison" class="panel-action-link" id="link-view-comparison">View Full Chart &rarr;</a>
+              </div>
+              <div class="panel-body bar-chart-body">
+                <div class="comparison-bar-chart-container" id="forecast-comparison-chart"></div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ==================== BOTTOM ROW: VERIFICATION & ALERTS ==================== -->
+        <section class="bottom-dashboard-grid">
+          
+          <!-- Bottom Left: Verification Summary (vs Observed) -->
+          <div class="dashboard-panel glass-panel verification-summary-panel">
+            <div class="panel-header">
+              <span class="panel-main-title">Verification Summary <span class="header-badge-tag">(vs Observed)</span></span>
+              <a href="#view-full-verification" class="panel-action-link" id="link-view-verification-report">Full Scientific Report &rarr;</a>
+            </div>
+            
+            <div class="panel-body verification-body">
+              
+              <!-- 7 Metric Tiles Row -->
+              <div class="metrics-strip-grid">
+                
+                <div class="metric-mini-tile">
+                  <span class="m-title">RMSE (mm)</span>
+                  <span class="m-val val-cyan">15.2</span>
+                  <span class="m-delta delta-better">&darr; 36% better</span>
+                  <span class="m-base">Raw NWP (24.8)</span>
+                </div>
+
+                <div class="metric-mini-tile">
+                  <span class="m-title">MAE (mm)</span>
+                  <span class="m-val val-cyan">11.3</span>
+                  <span class="m-delta delta-better">&darr; 34% better</span>
+                  <span class="m-base">Raw NWP (17.1)</span>
+                </div>
+
+                <div class="metric-mini-tile">
+                  <span class="m-title">ETS</span>
+                  <span class="m-val val-blue">0.68</span>
+                  <span class="m-delta delta-better">&uarr; 0.26 improvement</span>
+                  <span class="m-base">Raw NWP (0.42)</span>
+                </div>
+
+                <div class="metric-mini-tile">
+                  <span class="m-title">CSI</span>
+                  <span class="m-val val-blue">0.67</span>
+                  <span class="m-delta delta-better">&uarr; 0.24 improvement</span>
+                  <span class="m-base">Raw NWP (0.43)</span>
+                </div>
+
+                <div class="metric-mini-tile">
+                  <span class="m-title">POD</span>
+                  <span class="m-val val-blue">0.79</span>
+                  <span class="m-delta delta-better">&uarr; 0.28 improvement</span>
+                  <span class="m-base">Raw NWP (0.51)</span>
+                </div>
+
+                <div class="metric-mini-tile">
+                  <span class="m-title">FAR</span>
+                  <span class="m-val val-blue">0.21</span>
+                  <span class="m-delta delta-better">&darr; 0.18 improvement</span>
+                  <span class="m-base">Raw NWP (0.39)</span>
+                </div>
+
+                <div class="metric-mini-tile">
+                  <span class="m-title">FSS</span>
+                  <span class="m-val val-blue">0.71</span>
+                  <span class="m-delta delta-better">&uarr; 0.22 improvement</span>
+                  <span class="m-base">Raw NWP (0.49)</span>
+                </div>
+
+              </div>
+
+              <!-- AI Skill Score Slider Bar -->
+              <div class="ai-skill-score-row">
+                <div class="skill-score-meta">
+                  <span class="skill-label">AI Skill Score</span>
+                  <div class="skill-numeric-status">
+                    <span class="skill-number">0.71</span>
+                    <span class="skill-tag">Good</span>
+                  </div>
+                </div>
+
+                <div class="skill-gauge-wrapper">
+                  <div class="skill-slider-track">
+                    <div class="skill-gradient-fill" style="width: 71%;"></div>
+                    <div class="skill-indicator-needle" style="left: 71%;"></div>
+                  </div>
+                  <div class="skill-scale-numbers">
+                    <span>0</span>
+                    <span>0.25</span>
+                    <span>0.50</span>
+                    <span>0.75</span>
+                    <span>1.00</span>
+                  </div>
+                </div>
+
+                <div class="skill-assessment-box">
+                  <span class="assessment-highlight">Model skill is Good.</span>
+                  <span class="assessment-desc">AI corrected forecast shows significant improvement.</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Bottom Right: Recent Alerts -->
+          <div class="dashboard-panel glass-panel recent-alerts-panel">
+            <div class="panel-header">
+              <span class="panel-main-title">Recent Alerts</span>
+              <a href="#view-all-alerts" class="panel-action-link" id="link-view-all-alerts">View All Alerts &rarr;</a>
+            </div>
+
+            <div class="panel-body alerts-card-body">
+              
+              <!-- High Rainfall Alert Card -->
+              <div class="alert-item-card alert-card-high">
+                <div class="alert-icon-ring ring-red">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </div>
+                <div class="alert-details">
+                  <div class="alert-headline-row">
+                    <span class="alert-type-title type-red">High Rainfall Alert</span>
+                  </div>
+                  <div class="alert-districts-list">Bengaluru Urban, Chikkaballapur, Kolar</div>
+                  <div class="alert-threshold-note">Rainfall &gt; 64.5 mm expected</div>
+                  <div class="alert-timestamp">18 May 2025, 06:00 AM</div>
+                </div>
+              </div>
+
+              <!-- Moderate Rainfall Alert Card -->
+              <div class="alert-item-card alert-card-moderate">
+                <div class="alert-icon-ring ring-amber">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </div>
+                <div class="alert-details">
+                  <div class="alert-headline-row">
+                    <span class="alert-type-title type-amber">Moderate Rainfall Alert</span>
+                  </div>
+                  <div class="alert-districts-list">Kodagu, Mandya, Chamarajanagar</div>
+                  <div class="alert-threshold-note">Rainfall between 30 - 64.5 mm expected</div>
+                  <div class="alert-timestamp">18 May 2025, 06:00 AM</div>
+                </div>
+              </div>
+
+              <div class="all-alerts-footer-link">
+                <a href="#all-district-alerts" id="link-all-district-alerts">View All District Alerts &rarr;</a>
+              </div>
+
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+
+    </div>
+  </div>
+
+  <!-- ==================== DETAILED DRILLDOWN MODALS ==================== -->
+  
+  <!-- Modal 1: Comprehensive District Intelligence Table -->
+  <div class="modal-overlay hidden" id="modal-districts">
+    <div class="modal-container glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span class="modal-main-title">District-wise Forecast Intelligence & Uncertainty</span>
+        </div>
+        <button class="modal-close-btn" id="btn-close-modal-districts">&times;</button>
+      </div>
+      <div class="modal-body table-responsive">
+        <table class="scientific-table" id="table-district-forecasts">
           <thead>
             <tr>
               <th>District</th>
               <th>Terrain / Zone</th>
               <th>Raw NWP</th>
               <th>VARUNA-AI (Corr.)</th>
-              <th>Peak Max</th>
+              <th>Observed</th>
               <th>Bias Delta</th>
               <th>P(Rain &ge; 64.5mm)</th>
-              <th>80% Uncertainty Range</th>
-              <th>IMD Alert Code</th>
+              <th>80% Uncertainty</th>
+              <th>IMD Alert</th>
             </tr>
           </thead>
-          <tbody>
-            {% for d in district_forecasts %}
-              <tr>
-                <td style="font-weight: 600; color: #fff;">{{ d.district.name }}</td>
-                <td style="color: var(--text-dim);">{{ d.district.zone }}</td>
-                <td>{{ d.raw_nwp_mean_mm|floatformat:1 }} mm</td>
-                <td style="color: var(--accent-cyan); font-weight: 700;">{{ d.corrected_mean_mm|floatformat:1 }} mm</td>
-                <td>{{ d.corrected_max_mm|floatformat:1 }} mm</td>
-                <td>
-                  <span class="{% if d.bias_correction_delta_mm >= 0 %}delta-pos{% else %}delta-neg{% endif %}">
-                    {% if d.bias_correction_delta_mm > 0 %}+{% endif %}{{ d.bias_correction_delta_mm|floatformat:1 }} mm
-                  </span>
-                </td>
-                <td>{{ d.heavy_rain_probability|floatformat:3 }}</td>
-                <td style="color: var(--text-muted);">[{{ d.uncertainty_lower_10pct|floatformat:1 }} - {{ d.uncertainty_upper_90pct|floatformat:1 }}] mm</td>
-                <td>
-                  <span class="badge badge-{{ d.risk_code|lower }}">{{ d.risk_code }}</span>
-                </td>
-              </tr>
-            {% endfor %}
+          <tbody id="tbody-districts">
+            <!-- Dynamically Rendered -->
           </tbody>
         </table>
       </div>
+    </div>
+  </div>
 
-      <!-- Tab 2: Scientific Verification -->
-      <div id="tab-verification" class="tab-pane">
-        <div class="charts-grid" style="margin-bottom: 20px;">
-          <div class="card" style="padding: 12px; background: var(--bg-tertiary);">
-            <div id="verification-chart-container" class="chart-box"></div>
-          </div>
-          <div class="card" style="padding: 12px; background: var(--bg-tertiary);">
-            <div id="ladder-chart-container" class="chart-box"></div>
-          </div>
+  <!-- Modal 2: Verification Benchmarks & Model Ladder -->
+  <div class="modal-overlay hidden" id="modal-verification">
+    <div class="modal-container glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span class="modal-main-title">Model Ladder Scientific Verification Benchmarks</span>
         </div>
-
-        <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-main); margin-bottom: 8px;">
-          Model Ladder Verification Benchmarks (Held-Out Test Season 2024)
+        <button class="modal-close-btn" id="btn-close-modal-verification">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-charts-grid">
+          <div class="modal-chart-card" id="modal-chart-csi"></div>
+          <div class="modal-chart-card" id="modal-chart-ladder"></div>
         </div>
-        <table class="scientific-table">
+        <table class="scientific-table" style="margin-top: 16px;">
           <thead>
             <tr>
-              <th>Model Ladder Level</th>
-              <th>Description</th>
+              <th>Model Level</th>
+              <th>Architecture & Pipeline Specification</th>
               <th>MAE (mm)</th>
               <th>RMSE (mm)</th>
-              <th>Mean Bias (mm)</th>
-              <th>Pearson Correlation ($r$)</th>
+              <th>Mean Bias</th>
+              <th>Pearson ($r$)</th>
               <th>CSI (&ge; 64.5mm)</th>
-              <th>POD (&ge; 64.5mm)</th>
+              <th>POD</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td style="font-weight: 700; color: #f87171;">Level 0</td>
+              <td class="lvl-tag lvl-0">Level 0</td>
               <td>Raw NWP Baseline (Uncorrected Physics)</td>
               <td>8.76</td>
               <td>16.89</td>
-              <td>-5.60</td>
+              <td>-5.60 mm</td>
               <td>0.977</td>
               <td>0.482</td>
               <td>0.540</td>
             </tr>
             <tr>
-              <td style="font-weight: 700; color: #38bdf8;">Level 1</td>
+              <td class="lvl-tag lvl-1">Level 1</td>
               <td>Empirical Quantile Mapping (EQM)</td>
               <td>5.71</td>
               <td>8.96</td>
-              <td>-0.04</td>
+              <td>-0.04 mm</td>
               <td>0.980</td>
               <td>0.680</td>
               <td>0.742</td>
             </tr>
             <tr>
-              <td style="font-weight: 700; color: #a855f7;">Level 2</td>
-              <td>Standard ML Regressor (Model A - No Regime)</td>
+              <td class="lvl-tag lvl-2">Level 2</td>
+              <td>Standard ML Regressor (No Regime Coupling)</td>
               <td>5.40</td>
               <td>9.68</td>
-              <td>-0.30</td>
+              <td>-0.30 mm</td>
               <td>0.975</td>
               <td>0.710</td>
               <td>0.795</td>
             </tr>
-            <tr style="background: rgba(56, 189, 248, 0.08);">
-              <td style="font-weight: 700; color: #34d399;">Level 3</td>
-              <td><strong>VARUNA-AI Regime-Aware ML (Model B)</strong></td>
+            <tr class="highlight-level3">
+              <td class="lvl-tag lvl-3">Level 3</td>
+              <td><strong>VARUNA-AI Regime-Aware ML (Production)</strong></td>
               <td><strong>5.42</strong></td>
               <td><strong>9.98</strong></td>
-              <td><strong>-0.27</strong></td>
+              <td><strong>-0.27 mm</strong></td>
               <td><strong>0.974</strong></td>
               <td><strong>0.755</strong></td>
               <td><strong>0.840</strong></td>
@@ -305,90 +671,57 @@
           </tbody>
         </table>
       </div>
+    </div>
+  </div>
 
-      <!-- Tab 3: Regime Sensitivity & Failure Modes -->
-      <div id="tab-regimes" class="tab-pane">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-          <div>
-            <h4 style="color: var(--accent-cyan); margin-bottom: 10px; font-size: 14px;">Where VARUNA-AI Improves Forecasts</h4>
-            <ul style="color: var(--text-main); font-size: 13px; line-height: 1.8; margin-left: 20px;">
-              <li><strong>Monsoon Lows & Depressions:</strong> Resolves NWP extreme convective under-prediction by coupling 850 hPa vorticity and moisture flux convergence indices.</li>
-              <li><strong>Active Monsoon Orographic Slopes:</strong> Recovers windward precipitation deficit along the Western Ghats and Northeast hills using the orographic flux component.</li>
-              <li><strong>Break Monsoon Spurious Rain:</strong> Suppresses NWP drizzle false alarms across central Indian plains when the monsoon trough is displaced north to the foothills.</li>
-            </ul>
+  <!-- Modal 3: Synoptic Atmospheric Diagnostics -->
+  <div class="modal-overlay hidden" id="modal-synoptic">
+    <div class="modal-container glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="modal-main-title">Synoptic Meteorological Boundary Couplings</span>
+        </div>
+        <button class="modal-close-btn" id="btn-close-modal-synoptic">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="synoptic-metrics-grid">
+          <div class="syn-card">
+            <span class="syn-title">Mean Sea Level Pressure</span>
+            <span class="syn-val" id="syn-modal-mslp">1002.4 hPa</span>
+            <span class="syn-sub">Central isobaric depth</span>
           </div>
-
-          <div>
-            <h4 style="color: var(--accent-amber); margin-bottom: 10px; font-size: 14px;">Identified Scientific Limitations & Failure Modes</h4>
-            <ul style="color: var(--text-main); font-size: 13px; line-height: 1.8; margin-left: 20px;">
-              <li><strong>Rapid Synoptic Transitions:</strong> Transient under-prediction occurs during rapid un-forecasted Western Disturbance intrusions over Northwest India.</li>
-              <li><strong>Localized Sub-Grid Cloudbursts:</strong> Local convective phenomena (&gt;250 mm/hour) remain difficult to predict deterministically without meso-scale radar data.</li>
-              <li><strong>Missing Observation Latency:</strong> Offline fallback modes are triggered if real-time ground telemetry data is delayed.</li>
-            </ul>
+          <div class="syn-card">
+            <span class="syn-title">Low-Level Somali Jet (850 hPa)</span>
+            <span class="syn-val" id="syn-modal-llj">18.5 m/s</span>
+            <span class="syn-sub">Cross-equatorial flow</span>
+          </div>
+          <div class="syn-card">
+            <span class="syn-title">Tropical Easterly Jet (200 hPa)</span>
+            <span class="syn-val" id="syn-modal-tej">-28.4 m/s</span>
+            <span class="syn-sub">Upper-level divergence</span>
+          </div>
+          <div class="syn-card">
+            <span class="syn-title">Vertical Wind Shear</span>
+            <span class="syn-val" id="syn-modal-shear">46.2 m/s</span>
+            <span class="syn-sub">200-850 hPa bulk shear</span>
+          </div>
+          <div class="syn-card">
+            <span class="syn-title">Total Column Water Vapour</span>
+            <span class="syn-val" id="syn-modal-tcwv">58.6 kg/m²</span>
+            <span class="syn-sub">Moisture reservoir</span>
+          </div>
+          <div class="syn-card">
+            <span class="syn-title">Convective Available Energy</span>
+            <span class="syn-val" id="syn-modal-cape">2150 J/kg</span>
+            <span class="syn-sub">Atmospheric instability</span>
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- Tab 4: Provenance -->
-      <div id="tab-provenance" class="tab-pane">
-        <table class="scientific-table">
-          <thead>
-            <tr>
-              <th>System Component</th>
-              <th>Model Name</th>
-              <th>Version Tag</th>
-              <th>Training Period</th>
-              <th>Validation / Test</th>
-              <th>Algorithm Specification</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Weather Regime Engine</td>
-              <td>Regime-XGB-Classifier</td>
-              <td><code>regime-xgb-v1.0.0</code></td>
-              <td>2018-2022 Monsoon Seasons</td>
-              <td>Val: 2023 | Test: 2024</td>
-              <td>Calibrated Multi-Class Softmax Gradient Boosting</td>
-            </tr>
-            <tr>
-              <td>Rainfall Post-Processing</td>
-              <td>VARUNA-Regime-Aware-XGB</td>
-              <td><code>VARUNA-Level3-XGB-v1.0.0</code></td>
-              <td>2018-2022 Monsoon Seasons</td>
-              <td>Val: 2023 | Test: 2024</td>
-              <td>Regime-Coupled XGBoost Regressor with Physical Non-Negativity</td>
-            </tr>
-            <tr>
-              <td>Heavy Rainfall Probability</td>
-              <td>Threshold-Calibrated-GBDT</td>
-              <td><code>Prob-Exceed-v1.0.0</code></td>
-              <td>2018-2022 Monsoon Seasons</td>
-              <td>Val: 2023 | Test: 2024</td>
-              <td>Isotonically Calibrated Exceedance Classifier (&ge; 64.5mm)</td>
-            </tr>
-            <tr>
-              <td>Prediction Uncertainty</td>
-              <td>Conformal-Quantile-Estimator</td>
-              <td><code>Conformal-Quantile-v1.0.0</code></td>
-              <td>2018-2022 Monsoon Seasons</td>
-              <td>Val: 2023 | Test: 2024</td>
-              <td>Quantile Loss (q10, q50, q90) + 80% Split Conformal Calibration</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="app-footer">
-    VARUNA-AI &copy; 2026 Smart India Hackathon (SIH26080) &bull; Designed for Ministry of Earth Sciences (MoES) / IMD &bull; Built with Scientific Integrity
-  </footer>
-
-  <!-- Dashboard JavaScript -->
+  <!-- Dashboard JavaScript Engine -->
   <script src="{% static 'js/dashboard.js' %}"></script>
 </body>
 </html>
