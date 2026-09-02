@@ -400,24 +400,38 @@
   </div>
 
   <script>
-    // User's Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyA-2ZI3ciwqyyRjn0I8c8965dNAE6f-SXQ",
-      authDomain: "varuna-ai-960d4.firebaseapp.com",
-      projectId: "varuna-ai-960d4",
-      storageBucket: "varuna-ai-960d4.firebasestorage.app",
-      messagingSenderId: "1067430150983",
-      appId: "1:1067430150983:web:40c3b7a667dfd484c18262",
-      measurementId: "G-N7WXJBJHT7"
-    };
-
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+    // Ensure default theme is dark mode
+    if (!localStorage.getItem("varuna-theme")) {
+      localStorage.setItem("varuna-theme", "dark");
     }
-    const auth = firebase.auth();
 
+    let auth = null;
     let authMode = "login"; // 'login' or 'signup'
+
+    // Dynamically initialize Firebase from backend configuration
+    fetch("/api/v1/auth/config/")
+      .then((res) => res.json())
+      .then((firebaseConfig) => {
+        if (typeof firebase !== "undefined" && !firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        auth = firebase.auth();
+        
+        // Auto redirect if already signed in
+        auth.onAuthStateChanged((user) => {
+          if (user) {
+            localStorage.setItem("varuna_user", JSON.stringify({
+              email: user.email,
+              displayName: user.displayName || user.email.split("@")[0],
+              uid: user.uid
+            }));
+            window.location.href = "/";
+          }
+        });
+      })
+      .catch((err) => {
+        console.warn("Could not load dynamic auth config:", err);
+      });
 
     function switchTab(mode) {
       authMode = mode;
@@ -521,18 +535,7 @@
         window.location.href = "/";
       }, 500);
     }
-
-    // Auto redirect if already signed in
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        localStorage.setItem("varuna_user", JSON.stringify({
-          email: user.email,
-          displayName: user.displayName || user.email.split("@")[0],
-          uid: user.uid
-        }));
-        window.location.href = "/";
-      }
-    });
   </script>
 </body>
 </html>
+

@@ -24,4 +24,7 @@ urlpatterns = [
     path("api/v1/regimes/", api_views.get_regime_analytics, name="api_regimes"),
     path("api/v1/verification/", api_views.get_verification_benchmarks, name="api_verification"),
     path("api/v1/models/", api_views.get_model_registry, name="api_models"),
+    path("api/v1/auth/config/", api_views.get_firebase_config, name="api_firebase_config"),
+    path("api/v1/predict/", api_views.predict_custom_forecast, name="api_predict_forecast"),
 ]
+

@@ -2163,3 +2163,211 @@ body.light-theme .highlight-level3 {
   .alert-stat-bar { grid-template-columns: 1fr; }
 }
 
+/* ==========================================================================
+   LIGHT MODE — COMPREHENSIVE CONTRAST & VISIBILITY FIXES
+   All text elements must be legible against the light (#f1f5f9) background.
+   ========================================================================== */
+
+/* --- Core Headers & Descriptions --- */
+body.light-theme .view-header-title {
+  color: #0f172a !important;
+}
+body.light-theme .view-header-desc {
+  color: #334155 !important;
+}
+body.light-theme h2,
+body.light-theme h3 {
+  color: #0f172a;
+}
+
+/* --- KPI Cards --- */
+body.light-theme .kpi-title {
+  color: #475569;
+}
+body.light-theme .kpi-main-val {
+  color: #0f172a;
+}
+body.light-theme .kpi-sub-text,
+body.light-theme .kpi-confidence-pill {
+  color: #334155;
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+body.light-theme .val-cyan { color: #0284c7 !important; }
+body.light-theme .val-green { color: #059669 !important; }
+body.light-theme .val-red { color: #dc2626 !important; }
+body.light-theme .val-amber { color: #d97706 !important; }
+
+/* --- Tables --- */
+body.light-theme .scientific-table th {
+  background: #e2e8f0;
+  color: #334155;
+}
+body.light-theme .scientific-table td {
+  color: #0f172a;
+  border-bottom-color: rgba(0, 0, 0, 0.05);
+}
+body.light-theme .scientific-table tr:hover td {
+  background: rgba(37, 99, 235, 0.04);
+}
+
+/* --- District Table --- */
+body.light-theme #view-tbody-districts tr td {
+  color: #1e293b;
+}
+
+/* --- Synoptic / Regime Cards --- */
+body.light-theme .syn-card {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: #e2e8f0;
+}
+body.light-theme .syn-title {
+  color: #475569;
+}
+body.light-theme .syn-val {
+  color: #0f172a;
+}
+body.light-theme .syn-unit {
+  color: #64748b;
+}
+
+/* --- Alerts Feed --- */
+body.light-theme .alert-districts-list {
+  color: #1e293b;
+}
+body.light-theme .alert-threshold-note {
+  color: #475569;
+}
+body.light-theme .alert-timestamp {
+  color: #64748b;
+}
+body.light-theme .alert-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+body.light-theme .alert-stat-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+body.light-theme .alert-stat-label {
+  color: #334155;
+}
+body.light-theme .alert-stat-val {
+  color: #0f172a;
+}
+body.light-theme .alert-action-guide,
+body.light-theme .advisory-block p {
+  color: #1e293b;
+}
+
+/* --- Settings --- */
+body.light-theme .setting-title {
+  color: #0f172a;
+}
+body.light-theme .setting-desc {
+  color: #475569;
+}
+body.light-theme .setting-row {
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+/* --- Help / Documentation --- */
+body.light-theme .doc-heading {
+  color: #0f172a;
+}
+body.light-theme .doc-p,
+body.light-theme .doc-text,
+body.light-theme .help-section p,
+body.light-theme .help-section li {
+  color: #334155;
+}
+body.light-theme .api-endpoint-row td,
+body.light-theme .api-endpoint-row code {
+  color: #1e293b;
+}
+
+/* --- Data Sources --- */
+body.light-theme .source-name {
+  color: #0f172a;
+}
+body.light-theme .source-desc,
+body.light-theme .source-detail {
+  color: #475569;
+}
+body.light-theme .source-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+/* --- Historical Data --- */
+body.light-theme .archive-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* --- Glass Panel in light mode --- */
+body.light-theme .glass-panel {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(203, 213, 225, 0.8);
+  color: #0f172a;
+}
+
+/* --- Panel / Section headers --- */
+body.light-theme .section-header-title,
+body.light-theme .panel-label {
+  color: #0f172a;
+}
+
+/* --- Status & sidebar --- */
+body.light-theme .sidebar-status-card {
+  background: rgba(248, 250, 252, 0.96);
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+body.light-theme .status-title {
+  color: #1e293b;
+}
+body.light-theme .status-meta-label {
+  color: #475569;
+}
+body.light-theme .status-meta-val {
+  color: #0f172a;
+}
+body.light-theme .status-all-operational {
+  color: #059669;
+}
+
+/* --- Header --- */
+body.light-theme .header-main-title {
+  color: #0f172a;
+}
+body.light-theme .header-sub-title {
+  color: #475569;
+}
+
+/* --- Prediction view inputs --- */
+body.light-theme #view-predict input {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+body.light-theme #view-predict label {
+  color: #475569;
+}
+
+/* --- District spotlight modal --- */
+body.light-theme #district-spotlight {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: #e2e8f0;
+}
+body.light-theme .spot-district-name,
+body.light-theme .spot-section-title {
+  color: #0f172a;
+}
+body.light-theme .spot-row-label {
+  color: #475569;
+}
+body.light-theme .spot-row-val {
+  color: #0f172a;
+}

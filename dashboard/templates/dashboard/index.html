@@ -115,6 +115,13 @@
             </a>
           </li>
           <li class="nav-item">
+            <a href="#predict" class="nav-link" data-view="predict">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <span>Run Prediction</span>
+              <span class="nav-badge" style="background:linear-gradient(90deg,#06b6d4,#2563eb);color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700;">LIVE</span>
+            </a>
+          </li>
+          <li class="nav-item">
             <a href="#settings" class="nav-link" data-view="settings">
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               <span>Settings</span>
@@ -1503,7 +1510,136 @@
           </div>
         </section>
 
+        <!-- ===================================================================
+             VIEW 12: RUN PREDICTION (LIVE ON-DEMAND INFERENCE ENGINE)
+             =================================================================== -->
+        <section class="view-panel" id="view-predict">
+          <div class="view-header">
+            <div>
+              <h2 class="view-header-title">⚡ On-Demand Rainfall Prediction</h2>
+              <p class="view-header-desc">Input raw NWP + synoptic atmospheric features and run the full VARUNA-AI 4-level post-processing model ladder in real-time.</p>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+            <!-- INPUT FORM -->
+            <div class="glass-panel" style="padding:20px;">
+              <h3 style="font-size:14px;font-weight:700;color:var(--neon-cyan);margin-bottom:16px;letter-spacing:0.04em;text-transform:uppercase;">📡 NWP + Synoptic Inputs</h3>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">District Name</label>
+                  <input id="pred-district" value="Bengaluru Urban" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-sans);font-size:12px;">
+                </div>
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">NWP Rainfall (mm)</label>
+                  <input id="pred-nwp" type="number" value="45.0" step="0.5" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-mono);font-size:12px;">
+                </div>
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">Latitude (°N)</label>
+                  <input id="pred-lat" type="number" value="12.97" step="0.01" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-mono);font-size:12px;">
+                </div>
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">Longitude (°E)</label>
+                  <input id="pred-lon" type="number" value="77.59" step="0.01" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-mono);font-size:12px;">
+                </div>
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">MSLP (hPa)</label>
+                  <input id="pred-mslp" type="number" value="1002.4" step="0.1" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-mono);font-size:12px;">
+                </div>
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">TCWV (kg/m²)</label>
+                  <input id="pred-tcwv" type="number" value="58.6" step="0.1" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-mono);font-size:12px;">
+                </div>
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">U-850 hPa (m/s)</label>
+                  <input id="pred-u850" type="number" value="18.5" step="0.1" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-mono);font-size:12px;">
+                </div>
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">RH-700 hPa (%)</label>
+                  <input id="pred-rh700" type="number" value="82.0" step="0.1" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-mono);font-size:12px;">
+                </div>
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">CAPE (J/kg)</label>
+                  <input id="pred-cape" type="number" value="2150" step="50" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-mono);font-size:12px;">
+                </div>
+                <div>
+                  <label style="font-size:10.5px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:4px;">Wind Shear (m/s)</label>
+                  <input id="pred-shear" type="number" value="46.2" step="0.1" style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border-subtle);background:var(--bg-input);color:var(--text-main);font-family:var(--font-mono);font-size:12px;">
+                </div>
+              </div>
+
+              <button id="btn-run-prediction" onclick="runPrediction()" style="width:100%;padding:12px;border-radius:9px;border:none;background:linear-gradient(90deg,#0284c7,#2563eb);color:#fff;font-family:var(--font-sans);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.03em;transition:opacity 0.2s;">
+                ▶ Run VARUNA-AI Prediction Engine
+              </button>
+              <div id="pred-status" style="margin-top:10px;font-size:11.5px;color:var(--text-dim);min-height:18px;"></div>
+            </div>
+
+            <!-- OUTPUT RESULTS -->
+            <div class="glass-panel" style="padding:20px;" id="pred-results-panel">
+              <h3 style="font-size:14px;font-weight:700;color:var(--neon-emerald);margin-bottom:14px;letter-spacing:0.04em;text-transform:uppercase;">📊 VARUNA-AI Inference Output</h3>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                <div style="background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:9px;padding:12px;">
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;margin-bottom:4px;">Detected Regime</div>
+                  <div id="pred-out-regime" style="font-size:15px;font-weight:800;color:var(--neon-cyan);">—</div>
+                  <div id="pred-out-conf" style="font-size:10px;color:var(--text-muted);margin-top:2px;">Confidence: —</div>
+                </div>
+                <div style="background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:9px;padding:12px;">
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;margin-bottom:4px;">Risk Assessment</div>
+                  <div id="pred-out-risk" style="font-size:15px;font-weight:800;color:var(--text-main);">—</div>
+                  <div id="pred-out-action" style="font-size:9.5px;color:var(--text-muted);margin-top:2px;line-height:1.4;">—</div>
+                </div>
+              </div>
+
+              <div style="background:rgba(15,26,52,0.5);border:1px solid var(--border-subtle);border-radius:9px;padding:14px;margin-bottom:12px;">
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px;letter-spacing:0.05em;">4-Level Model Ladder Output</div>
+                <div style="display:flex;flex-direction:column;gap:7px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:11.5px;color:var(--text-muted);">🔴 Level 0 — Raw NWP</span>
+                    <span id="pred-l0" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#f87171;">— mm</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:11.5px;color:var(--text-muted);">🔵 Level 1 — Quantile Mapping (EQM)</span>
+                    <span id="pred-l1" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#38bdf8;">— mm</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:11.5px;color:var(--text-muted);">🟣 Level 2 — Standard ML (GBDT)</span>
+                    <span id="pred-l2" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#a855f7;">— mm</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:rgba(52,211,153,0.08);border-radius:6px;">
+                    <span style="font-size:11.5px;font-weight:700;color:#34d399;">🟢 Level 3 — VARUNA-AI (Regime-Aware)</span>
+                    <span id="pred-l3" style="font-family:var(--font-mono);font-size:15px;font-weight:800;color:#34d399;">— mm</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                <div style="background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:9px;padding:10px;text-align:center;">
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:3px;">BIAS ΔCORR</div>
+                  <div id="pred-delta" style="font-family:var(--font-mono);font-size:14px;font-weight:800;color:var(--neon-amber);">—</div>
+                </div>
+                <div style="background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:9px;padding:10px;text-align:center;">
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:3px;">P(HEAVY ≥64.5mm)</div>
+                  <div id="pred-prob-heavy" style="font-family:var(--font-mono);font-size:14px;font-weight:800;color:var(--neon-red);">—</div>
+                </div>
+                <div style="background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:9px;padding:10px;text-align:center;">
+                  <div style="font-size:10px;color:var(--text-muted);font-weight:600;margin-bottom:3px;">80% CONFORMAL CI</div>
+                  <div id="pred-ci" style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--neon-purple);">— — —</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bar chart comparing ladder levels -->
+          <div class="glass-panel" style="padding:20px;">
+            <h3 style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.04em;">Model Ladder Comparison Chart (Post-Inference)</h3>
+            <div id="pred-ladder-chart" style="height:220px;"></div>
+          </div>
+        </section>
+
       </main>
+
 
     </div>
   </div>

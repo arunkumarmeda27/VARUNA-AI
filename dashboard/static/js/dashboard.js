@@ -6,23 +6,27 @@
  * ==========================================================================
  */
 
-// User's Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyA-2ZI3ciwqyyRjn0I8c8965dNAE6f-SXQ",
-  authDomain: "varuna-ai-960d4.firebaseapp.com",
-  projectId: "varuna-ai-960d4",
-  storageBucket: "varuna-ai-960d4.firebasestorage.app",
-  messagingSenderId: "1067430150983",
-  appId: "1:1067430150983:web:40c3b7a667dfd484c18262",
-  measurementId: "G-N7WXJBJHT7"
-};
-
-// Initialize Firebase
-if (typeof firebase !== "undefined" && !firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+// Ensure default theme is always dark if not previously set
+if (!localStorage.getItem("varuna-theme")) {
+  localStorage.setItem("varuna-theme", "dark");
 }
 
+// Dynamically initialize Firebase from backend configuration (no secret in source)
+fetch("/api/v1/auth/config/")
+  .then((res) => res.json())
+  .then((firebaseConfig) => {
+    if (typeof firebase !== "undefined" && !firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    // Re-run auth check now that Firebase is initialized with real credentials
+    checkAuthentication();
+  })
+  .catch((err) => {
+    console.warn("Could not load dynamic auth config:", err);
+  });
+
 // Application State
+
 let mapInstance = null;
 let gisMapInstance = null;
 let tileLayerInstance = null;
@@ -1096,4 +1100,159 @@ function startAutoRefreshTimer() {
     loadLatestOperationalForecast();
     updateDynamicDates();
   }, 30000);
+}
+
+// ==========================================================================
+// Live On-Demand Prediction Engine
+// ==========================================================================
+
+let predLadderChart = null;
+
+function runPrediction() {
+  const btn = document.getElementById("btn-run-prediction");
+  const statusEl = document.getElementById("pred-status");
+
+  // Gather inputs
+  const payload = {
+    district_name: document.getElementById("pred-district")?.value || "Bengaluru Urban",
+    nwp_rainfall: parseFloat(document.getElementById("pred-nwp")?.value) || 45.0,
+    latitude: parseFloat(document.getElementById("pred-lat")?.value) || 12.97,
+    longitude: parseFloat(document.getElementById("pred-lon")?.value) || 77.59,
+    mslp: parseFloat(document.getElementById("pred-mslp")?.value) || 1002.4,
+    tcwv: parseFloat(document.getElementById("pred-tcwv")?.value) || 58.6,
+    u850: parseFloat(document.getElementById("pred-u850")?.value) || 18.5,
+    rh700: parseFloat(document.getElementById("pred-rh700")?.value) || 82.0,
+    cape: parseFloat(document.getElementById("pred-cape")?.value) || 2150.0,
+    vertical_wind_shear: parseFloat(document.getElementById("pred-shear")?.value) || 46.2,
+  };
+
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = "0.6";
+    btn.textContent = "⏳ Running VARUNA-AI Model Ladder...";
+  }
+  if (statusEl) statusEl.textContent = "🔄 Sending to inference engine...";
+
+  // POST to /api/v1/predict/
+  const query = new URLSearchParams(payload).toString();
+  fetch(`/api/v1/predict/?${query}`, { method: "GET" })
+    .then((res) => res.json())
+    .then((d) => {
+      if (d.status === "ERROR") throw new Error(d.message);
+
+      const riskColors = { RED: "#ef4444", ORANGE: "#f97316", YELLOW: "#eab308", GREEN: "#10b981" };
+      const risk = d.risk_assessment?.risk_code || "GREEN";
+      const riskColor = riskColors[risk] || "#10b981";
+
+      const fmt = (v) => (v != null ? `${v.toFixed(1)} mm` : "—");
+      const fmtDelta = (v) => (v != null ? `${v > 0 ? "+" : ""}${v.toFixed(1)} mm` : "—");
+
+      setText("pred-out-regime", (d.detected_regime || "—").replace(/_/g, " "));
+      setText("pred-out-conf", `Confidence: ${Math.round((d.regime_confidence || 0) * 100)}%`);
+
+      const riskEl = document.getElementById("pred-out-risk");
+      if (riskEl) {
+        riskEl.textContent = `🚨 ${risk} ALERT`;
+        riskEl.style.color = riskColor;
+      }
+      setText("pred-out-action", d.risk_assessment?.action_advisory || "—");
+
+      const lad = d.model_ladder || {};
+      setText("pred-l0", fmt(lad.level0_raw_nwp_mm));
+      setText("pred-l1", fmt(lad.level1_quantile_mapping_mm));
+      setText("pred-l2", fmt(lad.level2_standard_ml_mm));
+      setText("pred-l3", fmt(lad.level3_regime_aware_ml_mm));
+
+      const deltaEl = document.getElementById("pred-delta");
+      if (deltaEl) {
+        deltaEl.textContent = fmtDelta(d.bias_correction_delta_mm);
+        deltaEl.style.color = (d.bias_correction_delta_mm || 0) >= 0 ? "#10b981" : "#f97171";
+      }
+
+      const probHeavy = d.heavy_rainfall_probability;
+      setText("pred-prob-heavy", probHeavy != null ? `${Math.round(probHeavy * 100)}%` : "—");
+
+      const ci = d.uncertainty_interval_80pct || {};
+      setText("pred-ci",
+        ci.lower_10pct_mm != null
+          ? `[${ci.lower_10pct_mm.toFixed(1)}, ${ci.upper_90pct_mm.toFixed(1)}] mm`
+          : "—"
+      );
+
+      // Render Ladder Comparison Chart
+      const chartEl = document.getElementById("pred-ladder-chart");
+      if (chartEl && typeof echarts !== "undefined") {
+        if (predLadderChart) predLadderChart.dispose();
+        predLadderChart = echarts.init(chartEl);
+        const axisColor = currentTheme === "light" ? "#475569" : "#94a3b8";
+        const tooltipBg = currentTheme === "light" ? "rgba(255,255,255,0.96)" : "rgba(8,16,36,0.95)";
+        const tooltipText = currentTheme === "light" ? "#0f172a" : "#ffffff";
+
+        predLadderChart.setOption({
+          tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" },
+            backgroundColor: tooltipBg,
+            textStyle: { color: tooltipText },
+            formatter: (p) => `${p[0].name}<br/>Rainfall: <strong>${p[0].value.toFixed(1)} mm</strong>`,
+          },
+          grid: { top: 20, left: "5%", right: "5%", bottom: "10%", containLabel: true },
+          xAxis: {
+            type: "category",
+            data: ["Level 0\nRaw NWP", "Level 1\nEQM", "Level 2\nStd ML", "Level 3\nVARUNA-AI"],
+            axisLabel: { color: axisColor, fontSize: 11, fontFamily: "Plus Jakarta Sans" },
+            axisLine: { lineStyle: { color: "rgba(255,255,255,0.08)" } },
+          },
+          yAxis: {
+            type: "value",
+            name: "Rainfall (mm)",
+            nameTextStyle: { color: axisColor, fontSize: 10 },
+            axisLabel: { color: axisColor, fontFamily: "JetBrains Mono" },
+            splitLine: { lineStyle: { color: currentTheme === "light" ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.05)" } },
+          },
+          series: [{
+            type: "bar",
+            barWidth: "45%",
+            data: [
+              { value: lad.level0_raw_nwp_mm || 0, itemStyle: { color: "#f87171", borderRadius: [5, 5, 0, 0] } },
+              { value: lad.level1_quantile_mapping_mm || 0, itemStyle: { color: "#38bdf8", borderRadius: [5, 5, 0, 0] } },
+              { value: lad.level2_standard_ml_mm || 0, itemStyle: { color: "#a855f7", borderRadius: [5, 5, 0, 0] } },
+              { value: lad.level3_regime_aware_ml_mm || 0, itemStyle: { color: "#34d399", borderRadius: [5, 5, 0, 0] } },
+            ],
+            label: {
+              show: true,
+              position: "top",
+              formatter: (p) => `${p.value.toFixed(1)}`,
+              color: axisColor,
+              fontFamily: "JetBrains Mono",
+              fontSize: 11,
+              fontWeight: 700,
+            },
+          }],
+        });
+      }
+
+      if (statusEl) {
+        statusEl.style.color = "#10b981";
+        statusEl.textContent = `✅ Inference complete — ${d.district_name} | ${new Date().toLocaleTimeString()}`;
+      }
+    })
+    .catch((err) => {
+      if (statusEl) {
+        statusEl.style.color = "#ef4444";
+        statusEl.textContent = `❌ Inference failed: ${err.message}`;
+      }
+    })
+    .finally(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.textContent = "▶ Run VARUNA-AI Prediction Engine";
+      }
+    });
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
 }
