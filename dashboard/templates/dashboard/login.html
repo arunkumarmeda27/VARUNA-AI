@@ -1,0 +1,538 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VARUNA-AI | Secure Login & Operational Access</title>
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase App & Auth SDK (v10 compat CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #070d1e;
+      --bg-card: rgba(13, 23, 49, 0.82);
+      --border-card: rgba(56, 189, 248, 0.22);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --neon-cyan: #38bdf8;
+      --neon-blue: #3b82f6;
+      --neon-emerald: #10b981;
+      --neon-red: #ef4444;
+      --font-main: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(37, 99, 235, 0.22) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(56, 189, 248, 0.18) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.6) 0%, transparent 100%);
+      font-family: var(--font-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 460px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 40px 36px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), 0 0 40px rgba(56, 189, 248, 0.12);
+      backdrop-filter: blur(16px);
+      position: relative;
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .brand-icon-wrapper {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      margin-bottom: 16px;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+    }
+
+    .brand-cloud-icon {
+      width: 38px;
+      height: 38px;
+    }
+
+    .brand-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .brand-ai-badge {
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 900;
+    }
+
+    .brand-tagline {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .auth-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: var(--font-main);
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 9px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .auth-tab-btn.active {
+      background: var(--neon-blue);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 7px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 12px 14px 12px 40px;
+      color: var(--text-main);
+      font-size: 14px;
+      font-family: var(--font-main);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb, #0284c7);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: white;
+      font-family: var(--font-main);
+      font-size: 14.5px;
+      font-weight: 700;
+      padding: 13px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(37, 99, 235, 0.4);
+      transition: all 0.25s ease;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #1d4ed8, #0369a1);
+      box-shadow: 0 6px 24px rgba(37, 99, 235, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 20px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .divider span {
+      padding: 0 12px;
+    }
+
+    .btn-google {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #f1f5f9;
+      font-family: var(--font-main);
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 11px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-google:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-guest {
+      margin-top: 10px;
+      width: 100%;
+      background: transparent;
+      border: 1px dashed rgba(56, 189, 248, 0.4);
+      color: var(--neon-cyan);
+      font-family: var(--font-main);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-guest:hover {
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .auth-alert {
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .auth-alert.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+      display: block;
+    }
+
+    .auth-alert.success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #86efac;
+      display: block;
+    }
+
+    .footer-meta {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 11.5px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <!-- Brand Header -->
+    <div class="brand-header">
+      <div class="brand-icon-wrapper">
+        <svg class="brand-cloud-icon" viewBox="0 0 48 48" fill="none">
+          <defs>
+            <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#38bdf8"/>
+              <stop offset="100%" stop-color="#2563eb"/>
+            </linearGradient>
+          </defs>
+          <path d="M38 29.5C41.59 29.5 44.5 26.59 44.5 23C44.5 19.55 41.82 16.72 38.43 16.53C37.38 10.65 32.22 6.2 26 6.2C20.65 6.2 16.03 9.49 14.28 14.21C13.71 14.07 13.11 14 12.5 14C8.36 14 5 17.36 5 21.5C5 25.42 8.01 28.64 11.85 28.97" stroke="url(#cloudGrad)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M16 34L14 39M24 34L22 41M32 34L30 39" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1 class="brand-title">VARUNA<span class="brand-ai-badge">AI</span></h1>
+      <p class="brand-tagline">Regime-Aware Monsoon Rainfall AI Post-Processing Platform</p>
+    </div>
+
+    <!-- Auth Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab-btn active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab-btn" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+    </div>
+
+    <!-- Error/Success Alert Box -->
+    <div class="auth-alert" id="auth-alert"></div>
+
+    <!-- Auth Form -->
+    <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+      <div class="form-group" id="name-group" style="display: none;">
+        <label class="form-label" for="auth-name">Full Name</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input type="text" id="auth-name" class="form-input" placeholder="Dr. S. Ramanathan">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="auth-email">Meteorological Officer Email</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="auth-email" class="form-input" placeholder="officer@imd.gov.in" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="auth-password">Password</label>
+        <div class="input-wrapper">
+          <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="auth-password" class="form-input" placeholder="••••••••••••" required minlength="6">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="btn-submit-auth">
+        <span id="btn-text">Sign In to Dashboard</span>
+      </button>
+    </form>
+
+    <div class="divider">
+      <span>Or Connect With</span>
+    </div>
+
+    <!-- Google Sign-In -->
+    <button type="button" class="btn-google" onclick="handleGoogleSignIn()">
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/>
+        <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/>
+        <path fill="#FBBC05" d="M5.6 14.8c-.3-.8-.4-1.8-.4-2.8s.1-2 .4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"/>
+        <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16C3.7 19.7 7.5 23 12 23z"/>
+      </svg>
+      Sign in with Google
+    </button>
+
+    <!-- Guest / Demo Access -->
+    <button type="button" class="btn-guest" onclick="handleDemoAccess()">
+      ⚡ Instant Demo Access (Meteorological Evaluation Mode)
+    </button>
+
+    <div class="footer-meta">
+      Smart India Hackathon 2026 | Problem SIH26080<br>
+      MoES / India Meteorological Department (IMD)
+    </div>
+  </div>
+
+  <script>
+    // User's Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-2ZI3ciwqyyRjn0I8c8965dNAE6f-SXQ",
+      authDomain: "varuna-ai-960d4.firebaseapp.com",
+      projectId: "varuna-ai-960d4",
+      storageBucket: "varuna-ai-960d4.firebasestorage.app",
+      messagingSenderId: "1067430150983",
+      appId: "1:1067430150983:web:40c3b7a667dfd484c18262",
+      measurementId: "G-N7WXJBJHT7"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+
+    let authMode = "login"; // 'login' or 'signup'
+
+    function switchTab(mode) {
+      authMode = mode;
+      const tabLogin = document.getElementById("tab-login");
+      const tabSignup = document.getElementById("tab-signup");
+      const nameGroup = document.getElementById("name-group");
+      const btnText = document.getElementById("btn-text");
+      const alertBox = document.getElementById("auth-alert");
+      alertBox.className = "auth-alert";
+      alertBox.style.display = "none";
+
+      if (mode === "login") {
+        tabLogin.classList.add("active");
+        tabSignup.classList.remove("active");
+        nameGroup.style.display = "none";
+        btnText.innerText = "Sign In to Dashboard";
+      } else {
+        tabSignup.classList.add("active");
+        tabLogin.classList.remove("active");
+        nameGroup.style.display = "block";
+        btnText.innerText = "Register New Account";
+      }
+    }
+
+    function showAlert(msg, isError = true) {
+      const alertBox = document.getElementById("auth-alert");
+      alertBox.innerText = msg;
+      alertBox.className = "auth-alert " + (isError ? "error" : "success");
+      alertBox.style.display = "block";
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById("auth-email").value.trim();
+      const password = document.getElementById("auth-password").value;
+      const btn = document.getElementById("btn-submit-auth");
+      btn.disabled = true;
+
+      try {
+        if (authMode === "signup") {
+          const name = document.getElementById("auth-name").value.trim();
+          const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+          if (name && userCredential.user) {
+            await userCredential.user.updateProfile({ displayName: name });
+          }
+          localStorage.setItem("varuna_user", JSON.stringify({
+            email: email,
+            displayName: name || email.split("@")[0],
+            uid: userCredential.user.uid
+          }));
+          showAlert("Account created successfully! Redirecting...", false);
+        } else {
+          const userCredential = await auth.signInWithEmailAndPassword(email, password);
+          const u = userCredential.user;
+          localStorage.setItem("varuna_user", JSON.stringify({
+            email: u.email,
+            displayName: u.displayName || u.email.split("@")[0],
+            uid: u.uid
+          }));
+          showAlert("Signed in successfully! Redirecting...", false);
+        }
+
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 800);
+      } catch (err) {
+        btn.disabled = false;
+        showAlert(err.message || "Authentication failed. Please check credentials.");
+      }
+    }
+
+    async function handleGoogleSignIn() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const u = result.user;
+        localStorage.setItem("varuna_user", JSON.stringify({
+          email: u.email,
+          displayName: u.displayName || u.email.split("@")[0],
+          uid: u.uid,
+          photoURL: u.photoURL
+        }));
+        showAlert("Google Authentication successful! Redirecting...", false);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 800);
+      } catch (err) {
+        showAlert(err.message || "Google Sign-In failed. Please try again.");
+      }
+    }
+
+    function handleDemoAccess() {
+      localStorage.setItem("varuna_user", JSON.stringify({
+        email: "evaluator@sih26080.varuna.ai",
+        displayName: "SIH Evaluator / Lead Meteorologist",
+        uid: "demo_evaluator_2026",
+        isDemo: true
+      }));
+      showAlert("Logged in as Lead Meteorologist (Demo Mode). Redirecting...", false);
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 500);
+    }
+
+    // Auto redirect if already signed in
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        localStorage.setItem("varuna_user", JSON.stringify({
+          email: user.email,
+          displayName: user.displayName || user.email.split("@")[0],
+          uid: user.uid
+        }));
+        window.location.href = "/";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -4,7 +4,7 @@
 **Title**: Regime-Aware AI Post-Processing of Monsoon Rainfall Forecasts  
 **Ministry / Department**: Ministry of Earth Sciences (MoES) / India Meteorological Department (IMD)  
 **Repository**: [https://github.com/arunkumarmeda27/VARUNA-AI](https://github.com/arunkumarmeda27/VARUNA-AI)  
-**Status**: `ALL 13 MILESTONES COMPLETE & VERIFIED` &bull; `22/22 TESTS PASSING`
+**Status**: `ALL 14 MILESTONES COMPLETE & VERIFIED` &bull; `23/23 TESTS PASSING`
 
 ---
 
@@ -36,8 +36,9 @@ VARUNA-AI is a domain-guided meteorological post-processing and verification pla
 | **M9** | Scientific Verification Engine | `verification/` | `COMPLETE` | `verification/metrics.py`, `verification/verify.py` | Continuous (MAE, RMSE, Bias, $r$), Categorical (POD, FAR, CSI, ETS), Spatial (FSS) |
 | **M10**| Grid-to-District Spatial Aggregation | `geospatial/` | `COMPLETE` | `geospatial/districts/district_geometry.py`, `aggregation/grid_aggregator.py` | Point-in-polygon, area-weighted mean + peak max convective preservation |
 | **M11**| Backend ORM Database & REST API | `backend/` | `COMPLETE` | `backend/models.py`, `api_views.py`, `service.py`, `urls.py` | 9 REST endpoints with predictable schema, input validation, error handling |
-| **M12**| Operational Scientific Decision Dashboard | `dashboard/` | `COMPLETE` | `dashboard/templates/dashboard/index.html`, `dashboard.js`, `dashboard.css` | Leaflet multi-layer map, ECharts CSI curves, Synoptic diagnostics radar |
+| **M12**| Operational Scientific Decision Dashboard | `dashboard/` | `COMPLETE` | `dashboard/templates/dashboard/index.html`, `dashboard.js`, `dashboard.css` | 11 dedicated full-view workspaces (Overview, GIS Map, Districts, Regimes, Performance, Verification, Alerts, History, Sources, Settings, Docs) |
 | **M13**| Live End-to-End CLI Forecast Demo & Ablation| `experiments/` | `COMPLETE` | `experiments/run_end_to_end_demo.py`, `experiments/run_ablation_study.py` | 12-step interactive forecast journey + full statistical ablation suite |
+| **M14**| Firebase Authentication & Session Security| `dashboard/` | `COMPLETE` | `dashboard/templates/dashboard/login.html`, `dashboard.js`, `views.py` | Firebase v10 Auth SDK (Email/Password, Google OAuth, Lead Meteorologist Demo Mode), Session Guards |
 
 ---
 
@@ -90,27 +91,28 @@ python -m pytest -v tests/
 
 ```text
 tests/test_api.py::TestForecastAPI::test_dashboard_home_page PASSED      [  4%]
-tests/test_api.py::TestForecastAPI::test_districts_endpoint PASSED       [  9%]
+tests/test_api.py::TestForecastAPI::test_districts_endpoint PASSED       [  8%]
 tests/test_api.py::TestForecastAPI::test_health_endpoint PASSED          [ 13%]
-tests/test_api.py::TestForecastAPI::test_latest_forecast_endpoint PASSED [ 18%]
-tests/test_api.py::TestForecastAPI::test_models_registry_endpoint PASSED [ 22%]
-tests/test_api.py::TestForecastAPI::test_verification_benchmarks_endpoint PASSED [ 27%]
-tests/test_correction.py::test_level0_raw_nwp PASSED                     [ 31%]
-tests/test_correction.py::test_level1_quantile_mapping PASSED            [ 36%]
-tests/test_correction.py::test_correction_engine_pipeline PASSED         [ 40%]
-tests/test_data.py::test_data_validator_non_negativity PASSED            [ 45%]
-tests/test_data.py::test_data_leakage_assertion PASSED                   [ 50%]
-tests/test_data.py::test_temporal_chronological_splits PASSED            [ 54%]
-tests/test_data.py::test_spatial_reference_grid_generation PASSED        [ 59%]
-tests/test_features.py::test_synoptic_feature_computation PASSED         [ 63%]
-tests/test_geospatial.py::test_districts_geojson_validity PASSED         [ 68%]
-tests/test_geospatial.py::test_grid_to_district_aggregation PASSED       [ 72%]
-tests/test_probability.py::test_heavy_rainfall_probability_estimator PASSED [ 77%]
-tests/test_probability.py::test_conformal_uncertainty_estimator PASSED   [ 81%]
+tests/test_api.py::TestForecastAPI::test_latest_forecast_endpoint PASSED [ 17%]
+tests/test_api.py::TestForecastAPI::test_login_page PASSED               [ 21%]
+tests/test_api.py::TestForecastAPI::test_models_registry_endpoint PASSED [ 26%]
+tests/test_api.py::TestForecastAPI::test_verification_benchmarks_endpoint PASSED [ 30%]
+tests/test_correction.py::test_level0_raw_nwp PASSED                     [ 34%]
+tests/test_correction.py::test_level1_quantile_mapping PASSED            [ 39%]
+tests/test_correction.py::test_correction_engine_pipeline PASSED         [ 43%]
+tests/test_data.py::test_data_validator_non_negativity PASSED            [ 47%]
+tests/test_data.py::test_data_leakage_assertion PASSED                   [ 52%]
+tests/test_data.py::test_temporal_chronological_splits PASSED            [ 56%]
+tests/test_data.py::test_spatial_reference_grid_generation PASSED        [ 60%]
+tests/test_features.py::test_synoptic_feature_computation PASSED         [ 65%]
+tests/test_geospatial.py::test_districts_geojson_validity PASSED         [ 69%]
+tests/test_geospatial.py::test_grid_to_district_aggregation PASSED       [ 73%]
+tests/test_probability.py::test_heavy_rainfall_probability_estimator PASSED [ 78%]
+tests/test_probability.py::test_conformal_uncertainty_estimator PASSED   [ 82%]
 tests/test_regime.py::test_regime_classifier_inference PASSED            [ 86%]
-tests/test_verification.py::test_continuous_metrics PASSED               [ 90%]
+tests/test_verification.py::test_continuous_metrics PASSED               [ 91%]
 tests/test_verification.py::test_contingency_and_categorical_scores PASSED [ 95%]
 tests/test_verification.py::test_fractions_skill_score PASSED            [100%]
 
-============================= 22 passed in 5.51s ==============================
+============================= 23 passed in 3.61s ==============================
 ```

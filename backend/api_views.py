@@ -59,7 +59,22 @@ def list_forecast_runs(request):
 def get_latest_forecast(request):
     """Returns latest forecast run with all district products and GeoJSON layer."""
     ForecastService.seed_sample_forecast_runs()
-    run = ForecastRun.objects.all().order_by("-valid_time").first()
+    lead_time = request.GET.get("lead_time")
+    date_param = request.GET.get("date")
+    run_id = request.GET.get("run_id")
+
+    query = ForecastRun.objects.all()
+    if run_id:
+        query = query.filter(run_id=run_id)
+    if lead_time:
+        try:
+            query = query.filter(lead_time_hours=int(lead_time))
+        except ValueError:
+            pass
+    if date_param and date_param not in ["today", "tomorrow", "day3"]:
+        query = query.filter(valid_time=date_param)
+
+    run = query.order_by("-valid_time").first() or ForecastRun.objects.all().order_by("-valid_time").first()
     if not run:
         return JsonResponse({"error": "No forecast runs available"}, status=404)
 

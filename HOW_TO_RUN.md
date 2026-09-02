@@ -31,7 +31,12 @@ docker-compose up --build
 
 ### Step 3: Access the platform
 Once started, open your web browser and navigate to:
-👉 **[http://localhost:8000](http://localhost:8000)**
+👉 **[http://localhost:8000](http://localhost:8000)** (or direct login at **[http://localhost:8000/login/](http://localhost:8000/login/)**)
+
+#### Firebase Authentication & Operational Access:
+- **Instant Demo Access**: Click `⚡ Instant Demo Access (Meteorological Evaluation Mode)` for immediate 1-click evaluation access.
+- **Email & Password**: Register a new Meteorological Officer account or sign in with existing credentials.
+- **Google OAuth**: One-click sign-in via Google accounts.
 
 To stop the container:
 ```bash

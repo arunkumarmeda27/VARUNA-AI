@@ -7,4 +7,5 @@ from dashboard import views
 
 urlpatterns = [
     path("", views.dashboard_index, name="dashboard_home"),
+    path("login/", views.login_view, name="dashboard_login"),
 ]

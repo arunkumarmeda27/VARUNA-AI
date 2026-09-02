@@ -8,15 +8,35 @@ from geospatial.districts.district_geometry import get_districts_geojson, get_di
 from geospatial.aggregation.grid_aggregator import GridToDistrictAggregator
 
 def test_districts_geojson_validity():
-    gj = get_districts_geojson()
-    assert gj["type"] == "FeatureCollection"
-    assert len(gj["features"]) == len(DISTRICTS_METADATA)
+    # Test base curated districts
+    gj_base = get_districts_geojson(include_all_100=False)
+    assert gj_base["type"] == "FeatureCollection"
+    assert len(gj_base["features"]) == len(DISTRICTS_METADATA)
 
-    for feat in gj["features"]:
+    # Test complete all-India 100 district collection
+    gj_all = get_districts_geojson(include_all_100=True)
+    assert gj_all["type"] == "FeatureCollection"
+    assert len(gj_all["features"]) >= 100
+
+    for feat in gj_all["features"]:
         assert feat["type"] == "Feature"
-        assert "district_name" in feat["properties"]
+        props = feat["properties"]
+        assert "district_name" in props
+        assert "state" in props
+        assert "zone" in props
+        assert "centroid_lat" in props
+        assert "centroid_lon" in props
+        # Verify coordinates strictly within Indian geographical bounds
+        assert 8.0 <= props["centroid_lat"] <= 38.0
+        assert 68.0 <= props["centroid_lon"] <= 98.0
         assert "geometry" in feat
         assert feat["geometry"]["type"] == "Polygon"
+
+    # Test GeoDataFrame conversion
+    gdf = get_districts_geodataframe(include_all_100=True)
+    assert len(gdf) == len(gj_all["features"])
+    assert gdf.crs.to_string() == "EPSG:4326"
+
 
 def test_grid_to_district_aggregation():
     aggregator = GridToDistrictAggregator()

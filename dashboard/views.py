@@ -32,3 +32,8 @@ def dashboard_index(request):
         "district_count": len(district_forecasts),
     }
     return render(request, "dashboard/index.html", context)
+
+
+def login_view(request):
+    """Renders the Firebase-authenticated login page."""
+    return render(request, "dashboard/login.html")

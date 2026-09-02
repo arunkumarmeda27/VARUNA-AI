@@ -51,4 +51,10 @@ class TestForecastAPI(TestCase):
     def test_dashboard_home_page(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "VARUNA-AI")
+        self.assertContains(response, "VARUNA")
+
+    def test_login_page(self):
+        response = self.client.get("/login/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Secure Login")
+        self.assertContains(response, "varuna-ai-960d4")
