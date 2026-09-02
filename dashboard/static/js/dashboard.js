@@ -6,23 +6,29 @@
  * ==========================================================================
  */
 
-// Ensure default theme is always dark if not previously set
+/// Ensure default theme is always dark if not previously set
 if (!localStorage.getItem("varuna-theme")) {
   localStorage.setItem("varuna-theme", "dark");
 }
 
 // Dynamically initialize Firebase from backend configuration (no secret in source)
-fetch("/api/v1/auth/config/")
+const firebaseInitPromise = fetch("/api/v1/auth/config/")
   .then((res) => res.json())
   .then((firebaseConfig) => {
-    if (typeof firebase !== "undefined" && !firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+    if (typeof firebase !== "undefined" && (!firebase.apps || !firebase.apps.length)) {
+      try {
+        firebase.initializeApp(firebaseConfig);
+      } catch (e) {
+        console.warn("Firebase initializeApp error:", e);
+      }
     }
-    // Re-run auth check now that Firebase is initialized with real credentials
+    // Check authentication once Firebase is safely initialized
     checkAuthentication();
+    return true;
   })
   .catch((err) => {
     console.warn("Could not load dynamic auth config:", err);
+    return false;
   });
 
 // Application State
@@ -83,33 +89,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function checkAuthentication() {
   const storedUser = localStorage.getItem("varuna_user");
-  const auth = typeof firebase !== "undefined" ? firebase.auth() : null;
 
+  // 1. If user is already stored (Demo Mode or prior login), validate and hydrate immediately!
   if (storedUser) {
     try {
       const u = JSON.parse(storedUser);
       updateUserHeader(u);
+      return;
     } catch (e) {
       console.warn("Invalid user storage");
+      localStorage.removeItem("varuna_user");
     }
-  } else if (auth) {
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        const u = {
-          email: user.email,
-          displayName: user.displayName || user.email.split("@")[0],
-          uid: user.uid,
-        };
-        localStorage.setItem("varuna_user", JSON.stringify(u));
-        updateUserHeader(u);
-      } else {
-        // Redirect to login if unauthenticated
-        window.location.href = "/login/";
-      }
-    });
-  } else {
-    window.location.href = "/login/";
   }
+
+  // 2. Only check Firebase auth if Firebase is initialized with at least 1 app!
+  if (typeof firebase !== "undefined" && firebase.apps && firebase.apps.length > 0) {
+    try {
+      const auth = firebase.auth();
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          const u = {
+            email: user.email,
+            displayName: user.displayName || user.email.split("@")[0],
+            uid: user.uid,
+          };
+          localStorage.setItem("varuna_user", JSON.stringify(u));
+          updateUserHeader(u);
+        } else {
+          // If no Firebase user and no stored user, redirect to login
+          if (!localStorage.getItem("varuna_user")) {
+            window.location.href = "/login/";
+          }
+        }
+      });
+      return;
+    } catch (err) {
+      console.warn("Firebase auth listener error:", err);
+    }
+  }
+
+  // 3. Fallback: If not authenticated and no stored session after init attempt, redirect
+  firebaseInitPromise.finally(() => {
+    if (!localStorage.getItem("varuna_user")) {
+      setTimeout(() => {
+        if (!localStorage.getItem("varuna_user")) {
+          window.location.href = "/login/";
+        }
+      }, 500);
+    }
+  });
 }
 
 function updateUserHeader(u) {
@@ -127,16 +155,17 @@ function updateUserHeader(u) {
 }
 
 function handleSignOut() {
-  if (typeof firebase !== "undefined") {
-    firebase.auth().signOut().finally(() => {
-      localStorage.removeItem("varuna_user");
-      window.location.href = "/login/";
-    });
-  } else {
-    localStorage.removeItem("varuna_user");
-    window.location.href = "/login/";
+  try {
+    if (typeof firebase !== "undefined" && firebase.apps && firebase.apps.length > 0) {
+      firebase.auth().signOut().catch(() => {});
+    }
+  } catch (e) {
+    console.warn("Sign out error:", e);
   }
+  localStorage.removeItem("varuna_user");
+  window.location.href = "/login/";
 }
+
 
 // ==========================================================================
 // View Switching Logic (Fixes all navigation tabs)

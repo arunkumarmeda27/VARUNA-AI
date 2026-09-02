@@ -13,3 +13,8 @@ env/
 venv/
 *.log
 .DS_Store
+*.docx
+.vscode/
+.idea/
+.agents/
+.gemini/

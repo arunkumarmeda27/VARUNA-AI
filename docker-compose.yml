@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   varuna-forecast-engine:
     build:
@@ -10,17 +8,21 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DJANGO_SECRET_KEY=production-secure-varuna-ai-sih26080-key
+      - DJANGO_SECRET_KEY=varuna-ai-production-sih26080-scientific-forecast-key
       - DEBUG=True
       - PYTHONUNBUFFERED=1
-    volumes:
-      - ./weather_data/processed:/app/weather_data/processed
-      - ./regimes/models:/app/regimes/models
-      - ./correction/artifacts:/app/correction/artifacts
-      - ./verification:/app/verification
-      - ./varuna_db.sqlite3:/app/varuna_db.sqlite3
+      - PYTHONPATH=/app
+      - FAST_BOOT=0
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
     command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 networks:
   default:
     name: varuna_network
+

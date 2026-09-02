@@ -16,7 +16,7 @@ This guide provides complete, friction-free instructions to run, evaluate, test,
 
 ## Method 1: Docker (Zero-Setup - Recommended for Evaluators)
 
-With Docker, everything (system dependencies, Python libraries, dataset building, model training, and database migrations) is handled automatically inside the container.
+With Docker, everything (system dependencies, Python libraries, dataset building, model training, database migrations, and web dashboard) is handled automatically inside the container.
 
 ### Step 1: Clone the repository & navigate to directory
 ```bash
@@ -24,24 +24,54 @@ git clone https://github.com/arunkumarmeda27/VARUNA-AI.git
 cd VARUNA-AI
 ```
 
-### Step 2: Build and start the container
+### Step 2: Launch the Container (Choose Any Option)
+
+#### Option A: One-Click Runner (Easiest)
+- **Windows**: Double-click `run_docker.bat` or run:
+  ```powershell
+  .\run_docker.bat
+  ```
+- **Linux / macOS**: Run:
+  ```bash
+  chmod +x run_docker.sh && ./run_docker.sh
+  ```
+
+#### Option B: Docker Compose
 ```bash
-docker-compose up --build
+docker compose up --build
+```
+*(Or `docker-compose up --build` for Compose V1)*
+
+#### Option C: Pure Docker CLI
+```bash
+# Build the image
+docker build -t varuna-ai .
+
+# Run the container
+docker run -p 8000:8000 --name varuna_ai varuna-ai
 ```
 
-### Step 3: Access the platform
+### Step 3: Access the Platform
 Once started, open your web browser and navigate to:
 👉 **[http://localhost:8000](http://localhost:8000)** (or direct login at **[http://localhost:8000/login/](http://localhost:8000/login/)**)
 
-#### Firebase Authentication & Operational Access:
+#### Operational Access & Authentication:
 - **Instant Demo Access**: Click `⚡ Instant Demo Access (Meteorological Evaluation Mode)` for immediate 1-click evaluation access.
 - **Email & Password**: Register a new Meteorological Officer account or sign in with existing credentials.
 - **Google OAuth**: One-click sign-in via Google accounts.
+- **Health Diagnostic**: Check API health at **[http://localhost:8000/api/v1/health/](http://localhost:8000/api/v1/health/)**.
 
-To stop the container:
+### Running Tests Inside Docker
 ```bash
-docker-compose down
+docker run --rm varuna-ai pytest tests/ -v
 ```
+
+### To stop the container:
+```bash
+docker compose down
+# OR: docker stop varuna_ai
+```
+
 
 ---
 
