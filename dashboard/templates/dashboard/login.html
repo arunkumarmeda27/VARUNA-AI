@@ -428,18 +428,6 @@
           try {
             auth = firebase.auth();
             firebaseReady = true;
-            
-            // Auto redirect if already signed in
-            auth.onAuthStateChanged((user) => {
-              if (user) {
-                localStorage.setItem("varuna_user", JSON.stringify({
-                  email: user.email,
-                  displayName: user.displayName || user.email.split("@")[0],
-                  uid: user.uid
-                }));
-                window.location.href = "/";
-              }
-            });
           } catch (e) {
             console.warn("Firebase auth not ready:", e);
           }
@@ -505,7 +493,7 @@
             displayName: name || email.split("@")[0],
             uid: userCredential.user.uid
           }));
-          showAlert("Account created successfully! Redirecting...", false);
+          showAlert("Account created successfully! Redirecting to Dashboard...", false);
         } else {
           const userCredential = await auth.signInWithEmailAndPassword(email, password);
           const u = userCredential.user;
@@ -514,11 +502,11 @@
             displayName: u.displayName || u.email.split("@")[0],
             uid: u.uid
           }));
-          showAlert("Signed in successfully! Redirecting...", false);
+          showAlert("Signed in successfully! Redirecting to Dashboard...", false);
         }
 
         setTimeout(() => {
-          window.location.href = "/";
+          window.location.href = "/dashboard/";
         }, 800);
       } catch (err) {
         btn.disabled = false;
@@ -543,9 +531,9 @@
         uid: "local_" + Date.now(),
         isLocal: true
       }));
-      showAlert("Logged in as " + displayName + "! Redirecting...", false);
+      showAlert("Logged in as " + displayName + "! Redirecting to Dashboard...", false);
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "/dashboard/";
       }, 600);
     }
 
@@ -565,9 +553,9 @@
           uid: u.uid,
           photoURL: u.photoURL
         }));
-        showAlert("Google Authentication successful! Redirecting...", false);
+        showAlert("Google Authentication successful! Redirecting to Dashboard...", false);
         setTimeout(() => {
-          window.location.href = "/";
+          window.location.href = "/dashboard/";
         }, 800);
       } catch (err) {
         const msg = err.message || "";
@@ -589,11 +577,12 @@
         uid: "demo_evaluator_2026",
         isDemo: true
       }));
-      showAlert("Logged in as Lead Meteorologist (Evaluation Mode). Redirecting...", false);
+      showAlert("Logged in as Lead Meteorologist (Evaluation Mode). Redirecting to Dashboard...", false);
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "/dashboard/";
       }, 500);
     }
+
   </script>
 </body>
 </html>

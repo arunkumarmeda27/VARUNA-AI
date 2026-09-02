@@ -810,19 +810,83 @@ function updateHistoricalSeason(season) {
 // REST API Ingestion & Data Hydration
 // ==========================================================================
 
-function loadLatestOperationalForecast() {
-  fetch("/api/v1/forecasts/latest/")
+function loadLatestOperationalForecast(dateVal, cycleVal) {
+  const dSelect = document.getElementById("forecast-date-select");
+  const cSelect = document.getElementById("forecast-cycle-select");
+  const dateParam = dateVal || (dSelect ? dSelect.value : "today");
+  const cycleParam = cycleVal || (cSelect ? cSelect.value : "00:00");
+
+  const query = new URLSearchParams({
+    date: dateParam,
+    cycle: cycleParam,
+  });
+
+  if (dateParam === "tomorrow") query.append("lead_time", "48");
+  else if (dateParam === "day3") query.append("lead_time", "72");
+  else if (dateParam === "today") query.append("lead_time", "24");
+
+  fetch(`/api/v1/forecasts/latest/?${query.toString()}`)
     .then((res) => {
       if (!res.ok) throw new Error("API network error");
       return res.json();
     })
     .then((data) => {
       hydrateDashboard(data);
+      updateForecastSelectorDisplay(data, dateParam, cycleParam);
     })
     .catch((err) => {
       console.warn("Using local operational cache for UI hydration:", err);
       fetchDistrictsGeojson();
     });
+}
+
+function updateForecastSelectorDisplay(data, dateParam, cycleParam) {
+  const run = (data && data.forecast_run) || {};
+  const lt = run.lead_time_hours || 24;
+
+  const statusUpdated = document.getElementById("status-last-updated");
+  if (statusUpdated) {
+    const dText = dateParam === "tomorrow" ? "Tomorrow" : (dateParam === "day3" ? "Day +3" : "Today");
+    statusUpdated.innerText = `${dText} ${cycleParam || "00:00"} UTC (T+${lt}h)`;
+  }
+
+  const dSelect = document.getElementById("forecast-date-select");
+  const cSelect = document.getElementById("forecast-cycle-select");
+  const dName = dSelect && dSelect.options[dSelect.selectedIndex] ? dSelect.options[dSelect.selectedIndex].text : dateParam;
+  const cName = cSelect && cSelect.options[cSelect.selectedIndex] ? cSelect.options[cSelect.selectedIndex].text : cycleParam;
+  showToastNotification(`✅ Active Forecast: ${dName} | ${cName}`);
+}
+
+function showToastNotification(msg) {
+  let toast = document.getElementById("varuna-toast-msg");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "varuna-toast-msg";
+    toast.style.position = "fixed";
+    toast.style.bottom = "24px";
+    toast.style.right = "24px";
+    toast.style.background = "linear-gradient(135deg, rgba(8,16,36,0.96), rgba(15,26,52,0.96))";
+    toast.style.border = "1px solid rgba(56,189,248,0.4)";
+    toast.style.color = "#38bdf8";
+    toast.style.padding = "10px 18px";
+    toast.style.borderRadius = "10px";
+    toast.style.fontSize = "12.5px";
+    toast.style.fontWeight = "600";
+    toast.style.fontFamily = "var(--font-sans)";
+    toast.style.boxShadow = "0 8px 30px rgba(0,0,0,0.5), 0 0 20px rgba(56,189,248,0.2)";
+    toast.style.zIndex = "9999";
+    toast.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+    document.body.appendChild(toast);
+  }
+  toast.innerText = msg;
+  toast.style.opacity = "1";
+  toast.style.transform = "translateY(0)";
+
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(10px)";
+  }, 2800);
 }
 
 function fetchDistrictsGeojson() {
@@ -858,6 +922,7 @@ function hydrateDashboard(data) {
   const run = data.forecast_run || {};
   if (run.detected_regime) {
     const regNameElem = document.getElementById("kpi-regime-name");
+
     if (regNameElem) regNameElem.innerText = run.detected_regime.replace(/_/g, " ");
   }
   if (run.regime_confidence) {
@@ -1062,6 +1127,29 @@ function bindUIEvents() {
       }, 800);
     });
   }
+
+  // Date Selector Change (Today T+24h, Tomorrow T+48h, Day +3 T+72h, Reference Event)
+  const dateSelect = document.getElementById("forecast-date-select");
+  if (dateSelect) {
+    dateSelect.addEventListener("change", (e) => {
+      const selectedVal = e.target.value;
+      const selectedText = dateSelect.options[dateSelect.selectedIndex]?.text || selectedVal;
+      showToastNotification(`⏳ Loading Forecast for ${selectedText}...`);
+      loadLatestOperationalForecast(selectedVal);
+    });
+  }
+
+  // Time Cycle Selector Change (00:00 UTC, 06:00 UTC, 12:00 UTC)
+  const cycleSelect = document.getElementById("forecast-cycle-select");
+  if (cycleSelect) {
+    cycleSelect.addEventListener("change", (e) => {
+      const selectedCycle = e.target.value;
+      const selectedCycleText = cycleSelect.options[cycleSelect.selectedIndex]?.text || selectedCycle;
+      showToastNotification(`⏳ Loading ${selectedCycleText} Run...`);
+      loadLatestOperationalForecast(undefined, selectedCycle);
+    });
+  }
+
 
   // Fullscreen map button
   const btnFullscreen = document.getElementById("btn-fullscreen-map");

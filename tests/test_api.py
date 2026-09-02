@@ -53,6 +53,10 @@ class TestForecastAPI(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "VARUNA")
 
+    def test_dashboard_page(self):
+        response = self.client.get("/dashboard/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "VARUNA")
 
     def test_login_page(self):
         response = self.client.get("/login/")
@@ -60,3 +64,4 @@ class TestForecastAPI(TestCase):
         self.assertContains(response, "Secure Login")
         # Firebase config is now dynamically fetched from /api/v1/auth/config/ (no hardcoded secrets in HTML)
         self.assertContains(response, "/api/v1/auth/config/")
+
