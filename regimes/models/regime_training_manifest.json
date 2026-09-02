@@ -11,10 +11,10 @@
   },
   "production_metrics": {
     "model_type": "XGBoost_Regime_Classifier",
-    "accuracy": 0.8995901639344263,
-    "macro_f1": 0.7182143730480667,
-    "weighted_f1": 0.8992552574031981,
-    "log_loss": 0.24125034641718368,
+    "accuracy": 0.898224043715847,
+    "macro_f1": 0.71892328006685,
+    "weighted_f1": 0.8978755230440737,
+    "log_loss": 0.24483421444892883,
     "classes": [
       "ACTIVE_MONSOON",
       "BREAK_MONSOON",
@@ -24,5 +24,5 @@
       "WESTERN_DISTURBANCE"
     ]
   },
-  "timestamp": "2026-08-30T07:04:14.388193"
+  "timestamp": "2026-09-01T15:34:13.760909"
 }

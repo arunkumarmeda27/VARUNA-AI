@@ -1,169 +1,804 @@
 {
+  "test_period": "2024-06-01 to 2024-09-30",
+  "test_samples": 1464,
   "continuous_metrics": {
     "Raw_NWP": {
-      "Model": "Level 0 (Raw NWP)",
-      "MAE": 6.98,
-      "RMSE": 8.75,
-      "Mean_Bias": 1.92,
-      "Correlation": 0.962
+      "MAE": 8.763,
+      "RMSE": 16.889,
+      "Mean_Bias": -5.601,
+      "Correlation": 0.977
     },
     "Level1_Quantile_Mapping": {
-      "Model": "Level 1 (EQM)",
-      "MAE": 7.65,
-      "RMSE": 9.62,
-      "Mean_Bias": 1.22,
-      "Correlation": 0.951
+      "MAE": 5.709,
+      "RMSE": 8.96,
+      "Mean_Bias": -0.041,
+      "Correlation": 0.98
     },
     "Level2_Standard_ML": {
-      "Model": "Level 2 (Standard ML)",
-      "MAE": 11.51,
-      "RMSE": 19.99,
-      "Mean_Bias": -4.36,
-      "Correlation": 0.827
+      "MAE": 5.29,
+      "RMSE": 10.412,
+      "Mean_Bias": -1.549,
+      "Correlation": 0.974
     },
     "VARUNA_AI_Level3_Regime_Aware": {
-      "Model": "Level 3 (VARUNA-AI Regime-Aware)",
-      "MAE": 11.5,
-      "RMSE": 19.46,
-      "Mean_Bias": -4.82,
-      "Correlation": 0.839
+      "MAE": 5.161,
+      "RMSE": 10.191,
+      "Mean_Bias": -1.393,
+      "Correlation": 0.975
     }
   },
   "categorical_metrics": [
     {
       "Threshold_mm": 2.5,
-      "Model": "Raw_NWP",
-      "CSI": 0.846,
-      "POD": 1.0,
-      "FAR": 0.154,
-      "ETS": 0.423
+      "Hits": 1040,
+      "False_Alarms": 263,
+      "Misses": 106,
+      "Correct_Negatives": 55,
+      "POD": 0.9075,
+      "FAR": 0.2018,
+      "CSI": 0.7381,
+      "ETS": 0.0515,
+      "Frequency_Bias": 1.137,
+      "HK_Score": 0.0805,
+      "Model": "Raw_NWP"
     },
     {
       "Threshold_mm": 2.5,
-      "Model": "Level1_EQM",
-      "CSI": 0.846,
-      "POD": 1.0,
-      "FAR": 0.154,
-      "ETS": 0.423
+      "Hits": 989,
+      "False_Alarms": 162,
+      "Misses": 157,
+      "Correct_Negatives": 156,
+      "POD": 0.863,
+      "FAR": 0.1407,
+      "CSI": 0.7561,
+      "ETS": 0.2162,
+      "Frequency_Bias": 1.0044,
+      "HK_Score": 0.3536,
+      "Model": "Level1_Quantile_Mapping"
     },
     {
       "Threshold_mm": 2.5,
-      "Model": "Level2_Std_ML",
-      "CSI": 0.733,
-      "POD": 1.0,
-      "FAR": 0.267,
-      "ETS": 0.0
+      "Hits": 1048,
+      "False_Alarms": 50,
+      "Misses": 98,
+      "Correct_Negatives": 268,
+      "POD": 0.9145,
+      "FAR": 0.0455,
+      "CSI": 0.8763,
+      "ETS": 0.5602,
+      "Frequency_Bias": 0.9581,
+      "HK_Score": 0.7573,
+      "Model": "Level2_Standard_ML"
     },
     {
       "Threshold_mm": 2.5,
-      "Model": "VARUNA_AI_Level3",
-      "CSI": 0.733,
+      "Hits": 1077,
+      "False_Alarms": 46,
+      "Misses": 69,
+      "Correct_Negatives": 272,
+      "POD": 0.9398,
+      "FAR": 0.041,
+      "CSI": 0.9035,
+      "ETS": 0.6325,
+      "Frequency_Bias": 0.9799,
+      "HK_Score": 0.7951,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
+    },
+    {
+      "Threshold_mm": 15.6,
+      "Hits": 607,
+      "False_Alarms": 40,
+      "Misses": 69,
+      "Correct_Negatives": 748,
+      "POD": 0.8979,
+      "FAR": 0.0618,
+      "CSI": 0.8478,
+      "ETS": 0.7388,
+      "Frequency_Bias": 0.9571,
+      "HK_Score": 0.8472,
+      "Model": "Raw_NWP"
+    },
+    {
+      "Threshold_mm": 15.6,
+      "Hits": 612,
+      "False_Alarms": 44,
+      "Misses": 64,
+      "Correct_Negatives": 744,
+      "POD": 0.9053,
+      "FAR": 0.0671,
+      "CSI": 0.85,
+      "ETS": 0.7411,
+      "Frequency_Bias": 0.9704,
+      "HK_Score": 0.8495,
+      "Model": "Level1_Quantile_Mapping"
+    },
+    {
+      "Threshold_mm": 15.6,
+      "Hits": 597,
+      "False_Alarms": 27,
+      "Misses": 79,
+      "Correct_Negatives": 761,
+      "POD": 0.8831,
+      "FAR": 0.0433,
+      "CSI": 0.8492,
+      "ETS": 0.7445,
+      "Frequency_Bias": 0.9231,
+      "HK_Score": 0.8489,
+      "Model": "Level2_Standard_ML"
+    },
+    {
+      "Threshold_mm": 15.6,
+      "Hits": 597,
+      "False_Alarms": 25,
+      "Misses": 79,
+      "Correct_Negatives": 763,
+      "POD": 0.8831,
+      "FAR": 0.0402,
+      "CSI": 0.8516,
+      "ETS": 0.7487,
+      "Frequency_Bias": 0.9201,
+      "HK_Score": 0.8514,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
+    },
+    {
+      "Threshold_mm": 64.5,
+      "Hits": 111,
+      "False_Alarms": 1,
+      "Misses": 81,
+      "Correct_Negatives": 1271,
+      "POD": 0.5781,
+      "FAR": 0.0089,
+      "CSI": 0.5751,
+      "ETS": 0.5401,
+      "Frequency_Bias": 0.5833,
+      "HK_Score": 0.5773,
+      "Model": "Raw_NWP"
+    },
+    {
+      "Threshold_mm": 64.5,
+      "Hits": 156,
+      "False_Alarms": 33,
+      "Misses": 36,
+      "Correct_Negatives": 1239,
+      "POD": 0.8125,
+      "FAR": 0.1746,
+      "CSI": 0.6933,
+      "ETS": 0.6554,
+      "Frequency_Bias": 0.9844,
+      "HK_Score": 0.7866,
+      "Model": "Level1_Quantile_Mapping"
+    },
+    {
+      "Threshold_mm": 64.5,
+      "Hits": 155,
+      "False_Alarms": 29,
+      "Misses": 37,
+      "Correct_Negatives": 1243,
+      "POD": 0.8073,
+      "FAR": 0.1576,
+      "CSI": 0.7014,
+      "ETS": 0.6648,
+      "Frequency_Bias": 0.9583,
+      "HK_Score": 0.7845,
+      "Model": "Level2_Standard_ML"
+    },
+    {
+      "Threshold_mm": 64.5,
+      "Hits": 156,
+      "False_Alarms": 29,
+      "Misses": 36,
+      "Correct_Negatives": 1243,
+      "POD": 0.8125,
+      "FAR": 0.1568,
+      "CSI": 0.7059,
+      "ETS": 0.6696,
+      "Frequency_Bias": 0.9635,
+      "HK_Score": 0.7897,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
+    },
+    {
+      "Threshold_mm": 115.6,
+      "Hits": 27,
+      "False_Alarms": 0,
+      "Misses": 45,
+      "Correct_Negatives": 1392,
+      "POD": 0.375,
+      "FAR": 0.0,
+      "CSI": 0.375,
+      "ETS": 0.3633,
+      "Frequency_Bias": 0.375,
+      "HK_Score": 0.375,
+      "Model": "Raw_NWP"
+    },
+    {
+      "Threshold_mm": 115.6,
+      "Hits": 61,
+      "False_Alarms": 4,
+      "Misses": 11,
+      "Correct_Negatives": 1388,
+      "POD": 0.8472,
+      "FAR": 0.0615,
+      "CSI": 0.8026,
+      "ETS": 0.794,
+      "Frequency_Bias": 0.9028,
+      "HK_Score": 0.8443,
+      "Model": "Level1_Quantile_Mapping"
+    },
+    {
+      "Threshold_mm": 115.6,
+      "Hits": 61,
+      "False_Alarms": 5,
+      "Misses": 11,
+      "Correct_Negatives": 1387,
+      "POD": 0.8472,
+      "FAR": 0.0758,
+      "CSI": 0.7922,
+      "ETS": 0.7831,
+      "Frequency_Bias": 0.9167,
+      "HK_Score": 0.8436,
+      "Model": "Level2_Standard_ML"
+    },
+    {
+      "Threshold_mm": 115.6,
+      "Hits": 64,
+      "False_Alarms": 5,
+      "Misses": 8,
+      "Correct_Negatives": 1387,
+      "POD": 0.8889,
+      "FAR": 0.0725,
+      "CSI": 0.8312,
+      "ETS": 0.8234,
+      "Frequency_Bias": 0.9583,
+      "HK_Score": 0.8853,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
+    },
+    {
+      "Threshold_mm": 204.5,
+      "Hits": 4,
+      "False_Alarms": 0,
+      "Misses": 10,
+      "Correct_Negatives": 1450,
+      "POD": 0.2857,
+      "FAR": 0.0,
+      "CSI": 0.2857,
+      "ETS": 0.2838,
+      "Frequency_Bias": 0.2857,
+      "HK_Score": 0.2857,
+      "Model": "Raw_NWP"
+    },
+    {
+      "Threshold_mm": 204.5,
+      "Hits": 14,
+      "False_Alarms": 2,
+      "Misses": 0,
+      "Correct_Negatives": 1448,
       "POD": 1.0,
-      "FAR": 0.267,
-      "ETS": 0.0
+      "FAR": 0.125,
+      "CSI": 0.875,
+      "ETS": 0.8738,
+      "Frequency_Bias": 1.1429,
+      "HK_Score": 0.9986,
+      "Model": "Level1_Quantile_Mapping"
     },
     {
-      "Threshold_mm": 15.6,
-      "Model": "Raw_NWP",
-      "CSI": 0.727,
-      "POD": 0.889,
-      "FAR": 0.2,
-      "ETS": 0.4
-    },
-    {
-      "Threshold_mm": 15.6,
-      "Model": "Level1_EQM",
-      "CSI": 0.636,
-      "POD": 0.778,
-      "FAR": 0.222,
-      "ETS": 0.286
-    },
-    {
-      "Threshold_mm": 15.6,
-      "Model": "Level2_Std_ML",
-      "CSI": 0.727,
-      "POD": 0.889,
-      "FAR": 0.2,
-      "ETS": 0.4
-    },
-    {
-      "Threshold_mm": 15.6,
-      "Model": "VARUNA_AI_Level3",
-      "CSI": 0.8,
-      "POD": 0.889,
-      "FAR": 0.111,
-      "ETS": 0.565
-    },
-    {
-      "Threshold_mm": 64.5,
-      "Model": "Raw_NWP",
-      "CSI": 1.0,
-      "POD": 1.0,
+      "Threshold_mm": 204.5,
+      "Hits": 11,
+      "False_Alarms": 0,
+      "Misses": 3,
+      "Correct_Negatives": 1450,
+      "POD": 0.7857,
       "FAR": 0.0,
-      "ETS": 1.0
+      "CSI": 0.7857,
+      "ETS": 0.7841,
+      "Frequency_Bias": 0.7857,
+      "HK_Score": 0.7857,
+      "Model": "Level2_Standard_ML"
     },
     {
-      "Threshold_mm": 64.5,
-      "Model": "Level1_EQM",
-      "CSI": 1.0,
-      "POD": 1.0,
+      "Threshold_mm": 204.5,
+      "Hits": 11,
+      "False_Alarms": 0,
+      "Misses": 3,
+      "Correct_Negatives": 1450,
+      "POD": 0.7857,
       "FAR": 0.0,
-      "ETS": 1.0
-    },
-    {
-      "Threshold_mm": 64.5,
-      "Model": "Level2_Std_ML",
-      "CSI": 0.0,
-      "POD": 0.0,
-      "FAR": 0.0,
-      "ETS": 0.0
-    },
-    {
-      "Threshold_mm": 64.5,
-      "Model": "VARUNA_AI_Level3",
-      "CSI": 0.0,
-      "POD": 0.0,
-      "FAR": 0.0,
-      "ETS": 0.0
-    },
-    {
-      "Threshold_mm": 115.6,
-      "Model": "Raw_NWP",
-      "CSI": 0.0,
-      "POD": 0.0,
-      "FAR": 0.0,
-      "ETS": 0.0
-    },
-    {
-      "Threshold_mm": 115.6,
-      "Model": "Level1_EQM",
-      "CSI": 0.0,
-      "POD": 0.0,
-      "FAR": 0.0,
-      "ETS": 0.0
-    },
-    {
-      "Threshold_mm": 115.6,
-      "Model": "Level2_Std_ML",
-      "CSI": 0.0,
-      "POD": 0.0,
-      "FAR": 0.0,
-      "ETS": 0.0
-    },
-    {
-      "Threshold_mm": 115.6,
-      "Model": "VARUNA_AI_Level3",
-      "CSI": 0.0,
-      "POD": 0.0,
-      "FAR": 0.0,
-      "ETS": 0.0
+      "CSI": 0.7857,
+      "ETS": 0.7841,
+      "Frequency_Bias": 0.7857,
+      "HK_Score": 0.7857,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
     }
   ],
-  "dataset_summary": {
-    "source_csv": "C:\\Users\\medaa\\OneDrive\\Desktop\\VARUNA-AI\\VARUNA_AI_100_district_sample_named.csv",
-    "total_districts": 100,
-    "train_samples": 70,
-    "val_samples": 15,
-    "test_samples": 15
-  }
+  "regime_breakdown": {
+    "ACTIVE_MONSOON": {
+      "sample_count": 720,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 9.956,
+            "RMSE": 18.633,
+            "Mean_Bias": -7.409,
+            "Correlation": 0.977
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 64,
+            "False_Alarms": 1,
+            "Misses": 51,
+            "Correct_Negatives": 604,
+            "POD": 0.5565,
+            "FAR": 0.0154,
+            "CSI": 0.5517,
+            "ETS": 0.5077,
+            "Frequency_Bias": 0.5652,
+            "HK_Score": 0.5549
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 6.191,
+            "RMSE": 9.531,
+            "Mean_Bias": -0.551,
+            "Correlation": 0.98
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 92,
+            "False_Alarms": 19,
+            "Misses": 23,
+            "Correct_Negatives": 586,
+            "POD": 0.8,
+            "FAR": 0.1712,
+            "CSI": 0.6866,
+            "ETS": 0.6388,
+            "Frequency_Bias": 0.9652,
+            "HK_Score": 0.7686
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 6.019,
+            "RMSE": 12.516,
+            "Mean_Bias": -2.168,
+            "Correlation": 0.968
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 91,
+            "False_Alarms": 16,
+            "Misses": 24,
+            "Correct_Negatives": 589,
+            "POD": 0.7913,
+            "FAR": 0.1495,
+            "CSI": 0.6947,
+            "ETS": 0.6488,
+            "Frequency_Bias": 0.9304,
+            "HK_Score": 0.7649
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 5.854,
+            "RMSE": 12.245,
+            "Mean_Bias": -1.866,
+            "Correlation": 0.969
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 92,
+            "False_Alarms": 17,
+            "Misses": 23,
+            "Correct_Negatives": 588,
+            "POD": 0.8,
+            "FAR": 0.156,
+            "CSI": 0.697,
+            "ETS": 0.6509,
+            "Frequency_Bias": 0.9478,
+            "HK_Score": 0.7719
+          }
+        }
+      }
+    },
+    "BREAK_MONSOON": {
+      "sample_count": 252,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 6.277,
+            "RMSE": 11.424,
+            "Mean_Bias": -2.244,
+            "Correlation": 0.957
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 6,
+            "False_Alarms": 0,
+            "Misses": 9,
+            "Correct_Negatives": 237,
+            "POD": 0.4,
+            "FAR": 0.0,
+            "CSI": 0.4,
+            "ETS": 0.3854,
+            "Frequency_Bias": 0.4,
+            "HK_Score": 0.4
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 4.977,
+            "RMSE": 7.294,
+            "Mean_Bias": 0.452,
+            "Correlation": 0.967
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 11,
+            "False_Alarms": 7,
+            "Misses": 4,
+            "Correct_Negatives": 230,
+            "POD": 0.7333,
+            "FAR": 0.3889,
+            "CSI": 0.5,
+            "ETS": 0.4744,
+            "Frequency_Bias": 1.2,
+            "HK_Score": 0.7038
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 4.347,
+            "RMSE": 6.713,
+            "Mean_Bias": -1.33,
+            "Correlation": 0.974
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 11,
+            "False_Alarms": 6,
+            "Misses": 4,
+            "Correct_Negatives": 231,
+            "POD": 0.7333,
+            "FAR": 0.3529,
+            "CSI": 0.5238,
+            "ETS": 0.4997,
+            "Frequency_Bias": 1.1333,
+            "HK_Score": 0.708
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 4.155,
+            "RMSE": 6.472,
+            "Mean_Bias": -1.42,
+            "Correlation": 0.976
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 11,
+            "False_Alarms": 5,
+            "Misses": 4,
+            "Correct_Negatives": 232,
+            "POD": 0.7333,
+            "FAR": 0.3125,
+            "CSI": 0.55,
+            "ETS": 0.5275,
+            "Frequency_Bias": 1.0667,
+            "HK_Score": 0.7122
+          }
+        }
+      }
+    },
+    "MONSOON_LOW_DEPRESSION": {
+      "sample_count": 48,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 7.044,
+            "RMSE": 13.399,
+            "Mean_Bias": -3.894,
+            "Correlation": 0.967
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 4,
+            "False_Alarms": 0,
+            "Misses": 2,
+            "Correct_Negatives": 42,
+            "POD": 0.6667,
+            "FAR": 0.0,
+            "CSI": 0.6667,
+            "ETS": 0.6364,
+            "Frequency_Bias": 0.6667,
+            "HK_Score": 0.6667
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 4.907,
+            "RMSE": 7.798,
+            "Mean_Bias": 0.163,
+            "Correlation": 0.972
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 5,
+            "False_Alarms": 0,
+            "Misses": 1,
+            "Correct_Negatives": 42,
+            "POD": 0.8333,
+            "FAR": 0.0,
+            "CSI": 0.8333,
+            "ETS": 0.814,
+            "Frequency_Bias": 0.8333,
+            "HK_Score": 0.8333
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 4.67,
+            "RMSE": 7.339,
+            "Mean_Bias": 0.188,
+            "Correlation": 0.975
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 5,
+            "False_Alarms": 0,
+            "Misses": 1,
+            "Correct_Negatives": 42,
+            "POD": 0.8333,
+            "FAR": 0.0,
+            "CSI": 0.8333,
+            "ETS": 0.814,
+            "Frequency_Bias": 0.8333,
+            "HK_Score": 0.8333
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 5.13,
+            "RMSE": 7.82,
+            "Mean_Bias": 0.213,
+            "Correlation": 0.972
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 5,
+            "False_Alarms": 0,
+            "Misses": 1,
+            "Correct_Negatives": 42,
+            "POD": 0.8333,
+            "FAR": 0.0,
+            "CSI": 0.8333,
+            "ETS": 0.814,
+            "Frequency_Bias": 0.8333,
+            "HK_Score": 0.8333
+          }
+        }
+      }
+    },
+    "COASTAL_RAINFALL": {
+      "sample_count": 252,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 8.043,
+            "RMSE": 15.871,
+            "Mean_Bias": -4.282,
+            "Correlation": 0.982
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 16,
+            "False_Alarms": 0,
+            "Misses": 13,
+            "Correct_Negatives": 223,
+            "POD": 0.5517,
+            "FAR": 0.0,
+            "CSI": 0.5517,
+            "ETS": 0.5213,
+            "Frequency_Bias": 0.5517,
+            "HK_Score": 0.5517
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 5.138,
+            "RMSE": 8.214,
+            "Mean_Bias": 0.27,
+            "Correlation": 0.983
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 22,
+            "False_Alarms": 2,
+            "Misses": 7,
+            "Correct_Negatives": 221,
+            "POD": 0.7586,
+            "FAR": 0.0833,
+            "CSI": 0.7097,
+            "ETS": 0.6813,
+            "Frequency_Bias": 0.8276,
+            "HK_Score": 0.7497
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 4.562,
+            "RMSE": 8.65,
+            "Mean_Bias": -1.125,
+            "Correlation": 0.983
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 22,
+            "False_Alarms": 3,
+            "Misses": 7,
+            "Correct_Negatives": 220,
+            "POD": 0.7586,
+            "FAR": 0.12,
+            "CSI": 0.6875,
+            "ETS": 0.6566,
+            "Frequency_Bias": 0.8621,
+            "HK_Score": 0.7452
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 4.463,
+            "RMSE": 8.406,
+            "Mean_Bias": -1.12,
+            "Correlation": 0.983
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 22,
+            "False_Alarms": 2,
+            "Misses": 7,
+            "Correct_Negatives": 221,
+            "POD": 0.7586,
+            "FAR": 0.0833,
+            "CSI": 0.7097,
+            "ETS": 0.6813,
+            "Frequency_Bias": 0.8276,
+            "HK_Score": 0.7497
+          }
+        }
+      }
+    },
+    "OROGRAPHIC_RAINFALL": {
+      "sample_count": 192,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 8.925,
+            "RMSE": 18.066,
+            "Mean_Bias": -5.383,
+            "Correlation": 0.977
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 21,
+            "False_Alarms": 0,
+            "Misses": 6,
+            "Correct_Negatives": 165,
+            "POD": 0.7778,
+            "FAR": 0.0,
+            "CSI": 0.7778,
+            "ETS": 0.7505,
+            "Frequency_Bias": 0.7778,
+            "HK_Score": 0.7778
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 5.81,
+            "RMSE": 9.894,
+            "Mean_Bias": 0.767,
+            "Correlation": 0.98
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 26,
+            "False_Alarms": 5,
+            "Misses": 1,
+            "Correct_Negatives": 160,
+            "POD": 0.963,
+            "FAR": 0.1613,
+            "CSI": 0.8125,
+            "ETS": 0.7829,
+            "Frequency_Bias": 1.1481,
+            "HK_Score": 0.9327
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 4.901,
+            "RMSE": 8.267,
+            "Mean_Bias": -0.504,
+            "Correlation": 0.986
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 26,
+            "False_Alarms": 4,
+            "Misses": 1,
+            "Correct_Negatives": 161,
+            "POD": 0.963,
+            "FAR": 0.1333,
+            "CSI": 0.8387,
+            "ETS": 0.8133,
+            "Frequency_Bias": 1.1111,
+            "HK_Score": 0.9387
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 4.805,
+            "RMSE": 8.159,
+            "Mean_Bias": -0.342,
+            "Correlation": 0.986
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 26,
+            "False_Alarms": 5,
+            "Misses": 1,
+            "Correct_Negatives": 160,
+            "POD": 0.963,
+            "FAR": 0.1613,
+            "CSI": 0.8125,
+            "ETS": 0.7829,
+            "Frequency_Bias": 1.1481,
+            "HK_Score": 0.9327
+          }
+        }
+      }
+    }
+  },
+  "spatial_fss": {
+    "15.6mm": {
+      "window_1": {
+        "Raw_NWP": 0.9043,
+        "VARUNA_AI": 0.9027
+      },
+      "window_3": {
+        "Raw_NWP": 0.9837,
+        "VARUNA_AI": 0.9842
+      },
+      "window_5": {
+        "Raw_NWP": 0.9933,
+        "VARUNA_AI": 0.9925
+      }
+    },
+    "64.5mm": {
+      "window_1": {
+        "Raw_NWP": 0.6667,
+        "VARUNA_AI": 0.8824
+      },
+      "window_3": {
+        "Raw_NWP": 0.7688,
+        "VARUNA_AI": 0.9815
+      },
+      "window_5": {
+        "Raw_NWP": 0.8074,
+        "VARUNA_AI": 0.9915
+      }
+    },
+    "115.6mm": {
+      "window_1": {
+        "Raw_NWP": 0.5,
+        "VARUNA_AI": 1.0
+      },
+      "window_3": {
+        "Raw_NWP": 0.5143,
+        "VARUNA_AI": 1.0
+      },
+      "window_5": {
+        "Raw_NWP": 0.5421,
+        "VARUNA_AI": 1.0
+      }
+    }
+  },
+  "timestamp": "2026-09-01T21:04:48.387847"
 }

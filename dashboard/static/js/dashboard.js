@@ -78,9 +78,11 @@ function applyTheme(theme) {
 
   // Update Leaflet Basemap Tile Layer
   if (mapInstance && tileLayerInstance) {
-    const tileUrl = theme === "light"
-      ? "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png";
+    const CARTO_API_KEY = "YOUR_CARTO_KEY_HERE";
+
+const tileUrl = currentTheme === "light"
+  ? `https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+  : `https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`;
     tileLayerInstance.setUrl(tileUrl);
   }
 
@@ -113,21 +115,27 @@ function initLeafletMap() {
     zoomControl: true,
     attributionControl: false,
   });
+const CARTO_API_KEY = "cb1_2qb5_1_700f2c07dc5e8c6b22580eb4";
 
-  const tileUrl = currentTheme === "light"
-    ? "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png";
+const tileUrl =
+  `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_API_KEY}`;
 
-  tileLayerInstance = L.tileLayer(tileUrl, {
-    subdomains: "abcd",
-    maxZoom: 19,
-  }).addTo(mapInstance);
-
-  districtLabelsLayer = L.layerGroup().addTo(mapInstance);
+tileLayerInstance = L.tileLayer(tileUrl, {
+  subdomains: ["a", "b", "c", "d"],
+  maxZoom: 20,
+  attribution:
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; CARTO'
+}).addTo(mapInstance);
 }
 
 function updateGeojsonMap(geojsonData) {
   if (!mapInstance || !geojsonData) return;
+
+  // Make sure district label layer exists
+  if (!districtLabelsLayer) {
+    districtLabelsLayer = L.layerGroup().addTo(mapInstance);
+  }
+
   currentGeojsonData = geojsonData;
 
   if (geojsonLayer) {
@@ -143,28 +151,38 @@ function updateGeojsonMap(geojsonData) {
       const p = feature.properties || {};
       
       // Floating label directly on district centroid matching reference image
-      if (p.centroid_lat && p.centroid_lon) {
-        const valText = currentMapMode === "rainfall" 
-          ? `${Math.round(p.corrected_mean_mm || 0)} mm` 
-          : `${Math.round((p.heavy_rain_probability || 0) * 100)}%`;
+      if (p.centroid_lat && p.centroid_lon) {// Get district label position
+let labelLatLng;
 
-        const labelHtml = `
-          <div class="district-map-label">
-            ${p.district_name || ""}
-            <span>${valText}</span>
-          </div>
-        `;
+if (p.centroid_lat != null && p.centroid_lon != null) {
+  labelLatLng = [p.centroid_lat, p.centroid_lon];
+} else {
+  // Use the actual district polygon center if centroid fields are missing
+  labelLatLng = layer.getBounds().getCenter();
+}
 
-        const labelIcon = L.divIcon({
-          className: "custom-div-icon",
-          html: labelHtml,
-          iconSize: [80, 24],
-          iconAnchor: [40, 12],
-        });
+const valText = currentMapMode === "rainfall"
+  ? `${Math.round(p.corrected_mean_mm || 0)} mm`
+  : `${Math.round((p.heavy_rain_probability || 0) * 100)}%`;
 
-        L.marker([p.centroid_lat, p.centroid_lon], { icon: labelIcon, interactive: false })
-          .addTo(districtLabelsLayer);
-      }
+const labelHtml = `
+  <div class="district-map-label">
+    ${p.district_name || "District"}
+    <span>${valText}</span>
+  </div>
+`;
+
+const labelIcon = L.divIcon({
+  className: "custom-div-icon",
+  html: labelHtml,
+  iconSize: [100, 35],
+  iconAnchor: [50, 17],
+});
+
+L.marker(labelLatLng, {
+  icon: labelIcon,
+  interactive: false,
+}).addTo(districtLabelsLayer);}
 
       // Hover and click interactions
       layer.on({
