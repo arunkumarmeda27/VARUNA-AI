@@ -340,14 +340,18 @@ function initGisMap() {
       zoomControl: true,
       attributionControl: false,
     });
+  const CARTO_API_KEY = "cb1_2qb5_1_700f2c07dc5e8c6b22580eb4";
 
-    const tileUrl = currentTheme === "light"
-      ? "https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png";
+const tileUrl =
+  `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_API_KEY}`;
 
-    L.tileLayer(tileUrl, { subdomains: "abcd", maxZoom: 19 }).addTo(gisMapInstance);
-  }
-
+L.tileLayer(tileUrl, {
+  subdomains: ["a", "b", "c", "d"],
+  maxZoom: 20,
+  attribution:
+    '&copy; OpenStreetMap &copy; CARTO'
+}).addTo(mapInstance);
+}
   gisMapInstance.invalidateSize();
   if (currentGeojsonData) {
     L.geoJSON(currentGeojsonData, {
