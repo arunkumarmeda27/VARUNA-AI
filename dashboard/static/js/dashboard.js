@@ -472,22 +472,22 @@ function getPolygonStyle(feature) {
 }
 
 function getRainfallChoroplethColor(mm) {
-  if (mm >= 150) return "#a855f7"; // Intense Purple
-  if (mm >= 100) return "#dc2626"; // Crimson
-  if (mm >= 75)  return "#ea580c"; // Deep Orange-Red
-  if (mm >= 50)  return "#f59e0b"; // Amber-Orange
-  if (mm >= 35)  return "#eab308"; // Yellow
-  if (mm >= 25)  return "#10b981"; // Emerald Green
-  if (mm >= 15)  return "#06b6d4"; // Cyan-Teal
+  if (mm >= 250) return "#a855f7"; // Intense Purple
+  if (mm >= 204.5) return "#dc2626"; // Crimson
+  if (mm >= 150)  return "#ea580c"; // Deep Orange-Red
+  if (mm >= 115.6)  return "#f59e0b"; // Amber-Orange
+  if (mm >= 64.5)  return "#eab308"; // Yellow
+  if (mm >= 35.5)  return "#10b981"; // Emerald Green
+  if (mm >= 15.6)  return "#06b6d4"; // Cyan-Teal
   return "#0284c7";                // Blue
 }
 
 function getProbabilityChoroplethColor(prob) {
-  if (prob >= 0.80) return "#dc2626";
-  if (prob >= 0.65) return "#ea580c";
-  if (prob >= 0.50) return "#f59e0b";
-  if (prob >= 0.35) return "#10b981";
-  if (prob >= 0.20) return "#06b6d4";
+  if (prob >= 0.85) return "#dc2626";
+  if (prob >= 0.60) return "#ea580c";
+  if (prob >= 0.40) return "#f59e0b";
+  if (prob >= 0.20) return "#10b981";
+  if (prob >= 0.10) return "#06b6d4";
   return currentTheme === "light" ? "#cbd5e1" : "#1e293b";
 }
 
@@ -1012,15 +1012,16 @@ function renderAlertsFeed(districts) {
     let rCode = "GREEN";
     let actionGuide = "Normal seasonal monitoring; standard agricultural water management.";
 
-    if (corr >= 64.5 || prob >= 0.75) {
+    // Match the backend risk gates: corrected rainfall is the primary trigger.
+    if (corr >= 204.5 || (prob >= 0.35 && corr >= 64.5)) {
       rCode = "RED";
       redCount++;
       actionGuide = "IMMEDIATE EVACUATION & FLOOD PREPAREDNESS. NDRF & SDMA standby activated.";
-    } else if (corr >= 35.5 || prob >= 0.50) {
+    } else if (corr >= 115.6 || (prob >= 0.30 && corr >= 64.5) || (prob >= 0.55 && corr >= 35.5)) {
       rCode = "ORANGE";
       orangeCount++;
       actionGuide = "BE PREPARED. Heavy rainfall warning; restrict movement in low-lying riparian areas.";
-    } else if (corr >= 15.6 || prob >= 0.30) {
+    } else if (corr >= 64.5 || (prob >= 0.25 && corr >= 15.6) || (prob >= 0.60 && corr >= 15.6)) {
       rCode = "YELLOW";
       yellowCount++;
       actionGuide = "BE AWARE. Moderate rainfall; check local drainage channels and agricultural bunds.";

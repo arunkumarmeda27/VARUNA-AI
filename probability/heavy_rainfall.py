@@ -122,12 +122,14 @@ class HeavyRainfallProbabilityEstimator:
             p_vh = row.get(f"prob_exceed_115.6mm", 0.0)
             p_h = row.get(f"prob_exceed_64.5mm", 0.0)
             p_m = row.get(f"prob_exceed_15.6mm", 0.0)
+            corrected_rain = float(row.get("corrected_rainfall", row.get("nwp_rainfall", 0.0)))
 
-            if p_ext >= 0.35 or p_vh >= 0.60:
+            # Use the rainfall amount as the primary decision gate; probability is only a supporting signal.
+            if corrected_rain >= 204.5 or (p_ext >= 0.35 and corrected_rain >= 64.5):
                 return "RED_ALERT (Warning / Evacuation Preparedness)"
-            elif p_vh >= 0.30 or p_h >= 0.55:
+            elif corrected_rain >= 115.6 or (p_vh >= 0.30 and corrected_rain >= 64.5) or (p_h >= 0.55 and corrected_rain >= 35.5):
                 return "ORANGE_ALERT (Alert / Be Prepared)"
-            elif p_h >= 0.25 or p_m >= 0.60:
+            elif corrected_rain >= 64.5 or (p_h >= 0.25 and corrected_rain >= 15.6) or (p_m >= 0.60 and corrected_rain >= 15.6):
                 return "YELLOW_ALERT (Watch / Be Updated)"
             else:
                 return "GREEN_ALERT (No Warning / Normal Operations)"

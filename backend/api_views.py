@@ -409,18 +409,19 @@ def predict_custom_forecast(request):
         l1 = float(row.get("rain_level1_eqm", nwp_rain))
         l2 = float(row.get("rain_level2_std_ml", nwp_rain))
         l3 = float(row.get("rain_level3_varuna", corr_rain))
-        delta = float(round(l3 - l0, 2))
-        prob_heavy = float(row.get("prob_exceed_64.5", 0.5))
+        delta = float(round(abs(l3 - l0), 2))
+        prob_heavy = float(row.get("heavy_rain_probability", row.get("prob_exceed_64.5", 0.5)))
         unc_lower = float(row.get("uncertainty_lower_10pct", max(0.0, l3 * 0.75)))
         unc_upper = float(row.get("uncertainty_upper_90pct", l3 * 1.35))
 
-        if corr_rain >= 64.5 or prob_heavy >= 0.75:
+        # Use corrected rainfall as the primary risk gate; probability is only a supporting signal.
+        if corr_rain >= 204.5 or (prob_heavy >= 0.35 and corr_rain >= 64.5):
             risk_code = "RED"
             action = "IMMEDIATE EVACUATION & FLOOD PREPAREDNESS. NDRF & SDMA standby."
-        elif corr_rain >= 35.5 or prob_heavy >= 0.50:
+        elif corr_rain >= 115.6 or (prob_heavy >= 0.30 and corr_rain >= 64.5) or (prob_heavy >= 0.55 and corr_rain >= 35.5):
             risk_code = "ORANGE"
             action = "BE PREPARED. Heavy rainfall warning; restrict movement in riparian areas."
-        elif corr_rain >= 15.6 or prob_heavy >= 0.30:
+        elif corr_rain >= 64.5 or (prob_heavy >= 0.25 and corr_rain >= 15.6) or (prob_heavy >= 0.60 and corr_rain >= 15.6):
             risk_code = "YELLOW"
             action = "BE AWARE. Moderate rainfall; check local drainage channels."
         else:

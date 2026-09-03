@@ -67,13 +67,14 @@ class GridToDistrictAggregator:
             reg_conf = float(np.round(group.get("regime_confidence", pd.Series([0.80])).mean(), 4))
 
             # Operational Warning Color / Risk
-            if prob_ext >= 0.35 or prob_vh >= 0.60 or corrected_max >= 204.5:
+            # Use corrected rainfall as the primary gate so tiny rain totals cannot trigger severe alerts.
+            if corrected_max >= 204.5 or (prob_ext >= 0.35 and corrected_max >= 64.5):
                 risk_code = "RED"
                 risk_label = "RED ALERT (Take Action - Extremely Heavy Rain)"
-            elif prob_vh >= 0.30 or heavy_prob >= 0.55 or corrected_max >= 115.6:
+            elif corrected_max >= 115.6 or (prob_vh >= 0.30 and corrected_max >= 64.5) or (heavy_prob >= 0.55 and corrected_max >= 35.5):
                 risk_code = "ORANGE"
                 risk_label = "ORANGE ALERT (Be Prepared - Heavy to Very Heavy Rain)"
-            elif heavy_prob >= 0.25 or corrected_mean >= 15.6:
+            elif corrected_mean >= 15.6 or (heavy_prob >= 0.25 and corrected_mean >= 10.0):
                 risk_code = "YELLOW"
                 risk_label = "YELLOW ALERT (Be Updated - Moderate to Heavy Rain)"
             else:

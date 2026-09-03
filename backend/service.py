@@ -180,15 +180,15 @@ class ForecastService:
             raw_val = float(row.get("nwp_rainfall", 30.0))
             corr_val = float(row.get("corrected_rainfall", row.get("observed_rainfall", 45.0)))
             obs_val = float(row.get("observed_rainfall", corr_val * 0.9))
-            delta = round(corr_val - raw_val, 2)
+            delta = round(abs(corr_val - raw_val), 2)
             prob_h = float(row.get("heavy_rain_probability", row.get("prob_exceed_64.5mm", 0.55)))
 
             r_code = "GREEN"
-            if corr_val >= 64.5 or prob_h >= 0.70:
+            if corr_val >= 204.5 or (prob_h >= 0.85 and corr_val >= 64.5):
                 r_code = "RED"
-            elif corr_val >= 35.5 or prob_h >= 0.50:
+            elif corr_val >= 115.6 or (prob_h >= 0.60 and corr_val >= 64.5):
                 r_code = "ORANGE"
-            elif corr_val >= 15.6 or prob_h >= 0.30:
+            elif corr_val >= 64.5 or (prob_h >= 0.40 and corr_val >= 15.6):
                 r_code = "YELLOW"
 
             DistrictForecast.objects.create(
