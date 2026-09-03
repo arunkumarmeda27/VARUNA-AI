@@ -138,7 +138,7 @@ def _format_forecast_run_response(run: ForecastRun, lead_time=None, date_param=N
         })
 
     # Styled GeoJSON for direct map rendering
-    gj = get_districts_geojson()
+    gj = get_districts_geojson(include_all_100=True)
     d_map = {d["district_id"]: d for d in districts_data}
     for feat in gj["features"]:
         d_id = feat["id"]

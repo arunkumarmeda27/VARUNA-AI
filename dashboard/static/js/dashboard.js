@@ -36,6 +36,8 @@ const firebaseInitPromise = fetch("/api/v1/auth/config/")
 let mapInstance = null;
 let gisMapInstance = null;
 let tileLayerInstance = null;
+let gisTileLayerInstance = null;
+let gisGeojsonLayer = null;
 let geojsonLayer = null;
 let districtLabelsLayer = null;
 let currentGeojsonData = null;
@@ -282,6 +284,9 @@ function applyTheme(theme) {
   if (mapInstance && tileLayerInstance) {
     tileLayerInstance.setUrl(tileUrl);
   }
+  if (gisMapInstance && gisTileLayerInstance) {
+    gisTileLayerInstance.setUrl(tileUrl);
+  }
 
 
   // Refresh Charts with matching theme options
@@ -342,19 +347,21 @@ function initGisMap() {
     });
   const CARTO_API_KEY = "cb1_2qb5_1_700f2c07dc5e8c6b22580eb4";
 
-const tileUrl =
-  `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_API_KEY}`;
+  const tileUrl = currentTheme === "light"
+    ? `https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
+    : `https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`;
 
-L.tileLayer(tileUrl, {
+gisTileLayerInstance = L.tileLayer(tileUrl, {
   subdomains: ["a", "b", "c", "d"],
   maxZoom: 20,
   attribution:
     '&copy; OpenStreetMap &copy; CARTO'
-}).addTo(mapInstance);
+}).addTo(gisMapInstance);
 }
   gisMapInstance.invalidateSize();
   if (currentGeojsonData) {
-    L.geoJSON(currentGeojsonData, {
+    if (gisGeojsonLayer) gisMapInstance.removeLayer(gisGeojsonLayer);
+    gisGeojsonLayer = L.geoJSON(currentGeojsonData, {
       style: getPolygonStyle,
       onEachFeature: (feature, layer) => {
         const p = feature.properties || {};
@@ -520,12 +527,16 @@ function setMapLayerMode(mode) {
   if (mode === "rainfall") {
     if (btnRain) btnRain.classList.add("active");
     if (btnProb) btnProb.classList.remove("active");
+    document.querySelectorAll('[data-forecast-map-mode="rainfall"]').forEach((btn) => btn.classList.add("active"));
+    document.querySelectorAll('[data-forecast-map-mode="probability"]').forEach((btn) => btn.classList.remove("active"));
     if (legendHeader) legendHeader.innerText = "Rainfall (mm)";
     if (legendStripe) legendStripe.style.background = "linear-gradient(to bottom, #a855f7, #ef4444, #f97316, #eab308, #10b981, #06b6d4, #1e293b)";
     if (legendLabels) legendLabels.innerHTML = "<span>150+</span><span>100</span><span>75</span><span>50</span><span>25</span><span>10</span><span>0</span>";
   } else {
     if (btnProb) btnProb.classList.add("active");
     if (btnRain) btnRain.classList.remove("active");
+    document.querySelectorAll('[data-forecast-map-mode="probability"]').forEach((btn) => btn.classList.add("active"));
+    document.querySelectorAll('[data-forecast-map-mode="rainfall"]').forEach((btn) => btn.classList.remove("active"));
     if (legendHeader) legendHeader.innerText = "P(Rain ≥ 64.5mm)";
     if (legendStripe) legendStripe.style.background = "linear-gradient(to bottom, #dc2626, #ea580c, #f59e0b, #10b981, #06b6d4, #1e293b)";
     if (legendLabels) legendLabels.innerHTML = "<span>100%</span><span>80%</span><span>65%</span><span>50%</span><span>35%</span><span>20%</span><span>0%</span>";

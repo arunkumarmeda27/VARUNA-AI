@@ -922,6 +922,22 @@ input:checked + .toggle-slider .toggle-text-off {
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
 }
 
+.btn-submit {
+  background: linear-gradient(90deg, #0284c7, #2563eb);
+  border: none;
+  border-radius: 9px;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  transition: opacity 0.2s;
+}
+
+.btn-submit:hover {
+  opacity: 0.9;
+}
+
 .panel-icon-btn {
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);

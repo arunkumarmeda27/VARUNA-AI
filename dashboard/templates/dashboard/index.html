@@ -597,8 +597,8 @@
                 <p class="view-header-desc">Sub-district spatial post-processing with area-weighted polygon snapping and extreme peak convective preservation</p>
               </div>
               <div class="toggle-pill-group">
-                <button class="pill-btn active" onclick="setMapLayerMode('rainfall')">Rainfall Choropleth (mm)</button>
-                <button class="pill-btn" onclick="setMapLayerMode('probability')">Heavy Rain Exceedance (%)</button>
+                <button class="pill-btn active" data-forecast-map-mode="rainfall" onclick="setMapLayerMode('rainfall')">Rainfall Choropleth (mm)</button>
+                <button class="pill-btn" data-forecast-map-mode="probability" onclick="setMapLayerMode('probability')">Heavy Rain Exceedance (%)</button>
               </div>
             </div>
 
@@ -958,7 +958,7 @@
                 </h2>
                 <p class="view-header-desc">Standardized World Meteorological Organization & IMD forecast verification framework</p>
               </div>
-              <button class="btn-submit" style="width: auto; padding: 10px 20px;" onclick="window.print()">
+              <button class="btn-submit" style="width: auto; padding: 10px 20px; background: linear-gradient(90deg,#0284c7,#2563eb); border: none; border-radius: 9px; color: #fff; font-family: var(--font-sans); font-size: 13px; font-weight: 700; cursor: pointer;" onclick="window.print()">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                 Export PDF Verification Report
               </button>
