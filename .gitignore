@@ -13,3 +13,4 @@ htmlcov/
 *.parquet
 *.joblib
 .DS_Store
+weather_data/raw/
