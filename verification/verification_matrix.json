@@ -1,6 +1,77 @@
 {
-  "test_period": "2024-06-01 to 2024-09-30",
+  "verification_version": "v1.0.0",
+  "verification_type": "District-level independent test-set verification",
+  "test_period": null,
+  "test_period_status": "NOT_SPECIFIED",
   "test_samples": 15,
+  "dataset_summary": {
+    "train": {
+      "name": "train",
+      "rows": 70,
+      "columns": 33,
+      "has_valid_time": false,
+      "has_latitude": true,
+      "has_longitude": true,
+      "has_observed_rainfall": true,
+      "has_true_regime": true,
+      "unique_districts": 70,
+      "regime_counts": {
+        "OROGRAPHIC_RAINFALL": 18,
+        "BREAK_MONSOON": 14,
+        "ACTIVE_MONSOON": 13,
+        "COASTAL_RAINFALL": 10,
+        "WESTERN_DISTURBANCE": 9,
+        "MONSOON_LOW_DEPRESSION": 6
+      }
+    },
+    "validation": {
+      "name": "validation",
+      "rows": 15,
+      "columns": 33,
+      "has_valid_time": false,
+      "has_latitude": true,
+      "has_longitude": true,
+      "has_observed_rainfall": true,
+      "has_true_regime": true,
+      "unique_districts": 15,
+      "regime_counts": {
+        "OROGRAPHIC_RAINFALL": 4,
+        "COASTAL_RAINFALL": 3,
+        "BREAK_MONSOON": 3,
+        "ACTIVE_MONSOON": 2,
+        "WESTERN_DISTURBANCE": 2,
+        "MONSOON_LOW_DEPRESSION": 1
+      }
+    },
+    "test": {
+      "name": "test",
+      "rows": 15,
+      "columns": 33,
+      "has_valid_time": false,
+      "has_latitude": true,
+      "has_longitude": true,
+      "has_observed_rainfall": true,
+      "has_true_regime": true,
+      "unique_districts": 15,
+      "regime_counts": {
+        "ACTIVE_MONSOON": 3,
+        "OROGRAPHIC_RAINFALL": 3,
+        "BREAK_MONSOON": 3,
+        "COASTAL_RAINFALL": 2,
+        "WESTERN_DISTURBANCE": 2,
+        "MONSOON_LOW_DEPRESSION": 2
+      }
+    }
+  },
+  "dataset_facts": {
+    "train_rows": 70,
+    "validation_rows": 15,
+    "test_rows": 15,
+    "verified_rows": 15,
+    "invalid_rows_removed": 0,
+    "has_valid_time_column": false,
+    "has_real_spatial_grid": false
+  },
   "continuous_metrics": {
     "Raw_NWP": {
       "MAE": 6.977,
@@ -845,49 +916,33 @@
       }
     }
   },
-  "spatial_fss": {
-    "15.6mm": {
-      "window_1": {
-        "Raw_NWP": 1.0,
-        "VARUNA_AI": 1.0
-      },
-      "window_3": {
-        "Raw_NWP": 1.0,
-        "VARUNA_AI": 1.0
-      },
-      "window_5": {
-        "Raw_NWP": 1.0,
-        "VARUNA_AI": 1.0
-      }
-    },
-    "64.5mm": {
-      "window_1": {
-        "Raw_NWP": 1.0,
-        "VARUNA_AI": 1.0
-      },
-      "window_3": {
-        "Raw_NWP": 1.0,
-        "VARUNA_AI": 1.0
-      },
-      "window_5": {
-        "Raw_NWP": 1.0,
-        "VARUNA_AI": 1.0
-      }
-    },
-    "115.6mm": {
-      "window_1": {
-        "Raw_NWP": 1.0,
-        "VARUNA_AI": 1.0
-      },
-      "window_3": {
-        "Raw_NWP": 1.0,
-        "VARUNA_AI": 1.0
-      },
-      "window_5": {
-        "Raw_NWP": 1.0,
-        "VARUNA_AI": 1.0
-      }
+  "probability_summary": {
+    "heavy_rain_probability": {
+      "sample_count": 15,
+      "mean": 0.105,
+      "minimum": 0.0451,
+      "maximum": 0.5739
     }
   },
-  "timestamp": "2026-10-03T10:50:24.693631"
+  "uncertainty_summary": {
+    "sample_count": 15,
+    "mean_lower_10pct": 14.831,
+    "mean_upper_90pct": 44.379,
+    "mean_interval_width": 29.548
+  },
+  "spatial_fss": {
+    "status": "NOT_AVAILABLE",
+    "reason": "The current v1.0.0 test dataset contains 15 district-level records and does not contain a validated 2D spatial grid suitable for Fractions Skill Score calculation.",
+    "required_for_future_fss": [
+      "real latitude/longitude grid",
+      "spatially ordered observations",
+      "matching spatial NWP predictions",
+      "matching spatial VARUNA-AI predictions"
+    ]
+  },
+  "improvement_summary": {
+    "RMSE_improvement_percent": -121.362,
+    "MAE_improvement_percent": -71.435
+  },
+  "timestamp": "2026-10-03T12:03:08.621877"
 }
