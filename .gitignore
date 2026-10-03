@@ -14,3 +14,4 @@ htmlcov/
 *.joblib
 .DS_Store
 weather_data/raw/
+weather_data/processed/era5/
