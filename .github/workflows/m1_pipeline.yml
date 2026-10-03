@@ -1,0 +1,37 @@
+name: VARUNA-AI M1 Pipeline
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+jobs:
+  m1-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy xarray netCDF4 pyarrow scikit-learn
+
+      - name: Run M1 pipeline
+        run: |
+          python weather_data/run_m1_pipeline.py
+
+      - name: Upload M1 outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: VARUNA-AI-M1-output
+          path: |
+            weather_data/processed/real_ml/M1_DATA_HANDOFF.md
+            weather_data/processed/real_ml/M1_REAL_DATA_BACKTEST_RESULTS.txt
+            weather_data/processed/real_ml/VARUNA_AI_ML_DATASET_METADATA.txt

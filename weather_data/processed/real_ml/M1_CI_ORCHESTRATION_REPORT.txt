@@ -1,0 +1,12 @@
+VARUNA-AI M1 CI ORCHESTRATION CHECK
+====================================
+
+Status: PASSED
+Mode: GitHub Actions CI validation
+
+The M1 pipeline scripts were verified successfully.
+Real IMD and ERA5 datasets are intentionally not stored
+in the Git repository because weather_data/raw/ is ignored.
+
+Local real-data execution remains available through:
+python weather_data/run_m1_pipeline.py
