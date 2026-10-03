@@ -1,174 +1,201 @@
 {
   "test_period": "2024-06-01 to 2024-09-30",
-  "test_samples": 1464,
+  "test_samples": 15,
   "model_ladder_overall_metrics": {
     "Level0_Raw_NWP": {
-      "MAE": 8.763,
-      "RMSE": 16.889,
-      "Mean_Bias": -5.601,
-      "Correlation": 0.977
+      "MAE": 6.977,
+      "RMSE": 8.749,
+      "Mean_Bias": 1.917,
+      "Correlation": 0.962
     },
     "Level1_Quantile_Mapping": {
-      "MAE": 5.709,
-      "RMSE": 8.96,
-      "Mean_Bias": -0.041,
-      "Correlation": 0.98
+      "MAE": 7.648,
+      "RMSE": 9.623,
+      "Mean_Bias": 1.22,
+      "Correlation": 0.951
     },
     "Level2_Standard_ML_ModelA": {
-      "MAE": 5.34,
-      "RMSE": 10.667,
-      "Mean_Bias": -1.661,
-      "Correlation": 0.973
+      "MAE": 11.99,
+      "RMSE": 20.467,
+      "Mean_Bias": -4.799,
+      "Correlation": 0.803
     },
     "Level3_Regime_Aware_ModelB": {
-      "MAE": 5.189,
-      "RMSE": 10.196,
-      "Mean_Bias": -1.335,
-      "Correlation": 0.974
+      "MAE": 11.961,
+      "RMSE": 19.367,
+      "Mean_Bias": -3.955,
+      "Correlation": 0.846
     }
   },
   "scientific_gains": {
-    "MAE_improvement_ModelB_vs_ModelA_pct": 2.83,
-    "RMSE_improvement_ModelB_vs_ModelA_pct": 4.42,
-    "RMSE_improvement_VARUNA_vs_RawNWP_pct": 39.63,
+    "MAE_improvement_ModelB_vs_ModelA_pct": 0.24,
+    "RMSE_improvement_ModelB_vs_ModelA_pct": 5.37,
+    "RMSE_improvement_VARUNA_vs_RawNWP_pct": -121.36,
     "hypothesis_supported": true
   },
   "regime_stratified_metrics": {
     "ACTIVE_MONSOON": {
-      "sample_count": 720,
+      "sample_count": 3,
       "Level0_Raw": {
-        "MAE": 9.956,
-        "RMSE": 18.633,
-        "Mean_Bias": -7.409,
-        "Correlation": 0.977
+        "MAE": 4.85,
+        "RMSE": 5.355,
+        "Mean_Bias": -3.743,
+        "Correlation": 0.988
       },
       "Level1_EQM": {
-        "MAE": 6.191,
-        "RMSE": 9.531,
-        "Mean_Bias": -0.551,
-        "Correlation": 0.98
+        "MAE": 5.364,
+        "RMSE": 6.679,
+        "Mean_Bias": -5.364,
+        "Correlation": 1.0
       },
       "Level2_StdML": {
-        "MAE": 6.048,
-        "RMSE": 12.778,
-        "Mean_Bias": -2.3,
-        "Correlation": 0.966
+        "MAE": 7.972,
+        "RMSE": 9.06,
+        "Mean_Bias": -5.642,
+        "Correlation": 0.871
       },
       "Level3_RegimeAware": {
-        "MAE": 5.884,
-        "RMSE": 12.195,
-        "Mean_Bias": -1.798,
-        "Correlation": 0.968
+        "MAE": 8.684,
+        "RMSE": 9.767,
+        "Mean_Bias": -6.112,
+        "Correlation": 0.849
       }
     },
     "BREAK_MONSOON": {
-      "sample_count": 252,
+      "sample_count": 3,
       "Level0_Raw": {
-        "MAE": 6.277,
-        "RMSE": 11.424,
-        "Mean_Bias": -2.244,
-        "Correlation": 0.957
+        "MAE": 5.67,
+        "RMSE": 6.197,
+        "Mean_Bias": 0.977,
+        "Correlation": 0.945
       },
       "Level1_EQM": {
-        "MAE": 4.976,
-        "RMSE": 7.294,
-        "Mean_Bias": 0.452,
-        "Correlation": 0.967
+        "MAE": 8.665,
+        "RMSE": 9.849,
+        "Mean_Bias": 2.815,
+        "Correlation": 0.919
       },
       "Level2_StdML": {
-        "MAE": 4.343,
-        "RMSE": 6.501,
-        "Mean_Bias": -1.442,
-        "Correlation": 0.975
+        "MAE": 4.673,
+        "RMSE": 5.223,
+        "Mean_Bias": -0.852,
+        "Correlation": 0.971
       },
       "Level3_RegimeAware": {
-        "MAE": 4.22,
-        "RMSE": 6.579,
-        "Mean_Bias": -1.486,
-        "Correlation": 0.975
+        "MAE": 3.683,
+        "RMSE": 4.463,
+        "Mean_Bias": -0.838,
+        "Correlation": 0.963
       }
     },
     "COASTAL_RAINFALL": {
-      "sample_count": 252,
+      "sample_count": 2,
       "Level0_Raw": {
-        "MAE": 8.043,
-        "RMSE": 15.871,
-        "Mean_Bias": -4.282,
-        "Correlation": 0.982
+        "MAE": 16.425,
+        "RMSE": 17.282,
+        "Mean_Bias": 16.425,
+        "Correlation": 0.0
       },
       "Level1_EQM": {
-        "MAE": 5.138,
-        "RMSE": 8.214,
-        "Mean_Bias": 0.27,
-        "Correlation": 0.983
+        "MAE": 15.361,
+        "RMSE": 16.237,
+        "Mean_Bias": 15.361,
+        "Correlation": 0.0
       },
       "Level2_StdML": {
-        "MAE": 4.557,
-        "RMSE": 8.934,
-        "Mean_Bias": -1.222,
-        "Correlation": 0.982
+        "MAE": 9.291,
+        "RMSE": 10.982,
+        "Mean_Bias": 9.291,
+        "Correlation": 0.0
       },
       "Level3_RegimeAware": {
-        "MAE": 4.364,
-        "RMSE": 8.197,
-        "Mean_Bias": -1.075,
-        "Correlation": 0.984
+        "MAE": 10.751,
+        "RMSE": 12.743,
+        "Mean_Bias": 10.751,
+        "Correlation": 0.0
       }
     },
     "MONSOON_LOW_DEPRESSION": {
-      "sample_count": 48,
+      "sample_count": 2,
       "Level0_Raw": {
-        "MAE": 7.044,
-        "RMSE": 13.399,
-        "Mean_Bias": -3.894,
-        "Correlation": 0.967
+        "MAE": 9.01,
+        "RMSE": 9.329,
+        "Mean_Bias": -9.01,
+        "Correlation": 1.0
       },
       "Level1_EQM": {
-        "MAE": 4.907,
-        "RMSE": 7.798,
-        "Mean_Bias": 0.163,
-        "Correlation": 0.972
+        "MAE": 11.67,
+        "RMSE": 12.405,
+        "Mean_Bias": -11.67,
+        "Correlation": 1.0
       },
       "Level2_StdML": {
-        "MAE": 4.691,
-        "RMSE": 7.361,
-        "Mean_Bias": 0.05,
-        "Correlation": 0.975
+        "MAE": 40.833,
+        "RMSE": 51.396,
+        "Mean_Bias": -40.833,
+        "Correlation": 1.0
       },
       "Level3_RegimeAware": {
-        "MAE": 5.153,
-        "RMSE": 7.56,
-        "Mean_Bias": 0.2,
-        "Correlation": 0.974
+        "MAE": 36.22,
+        "RMSE": 46.75,
+        "Mean_Bias": -36.22,
+        "Correlation": 1.0
       }
     },
     "OROGRAPHIC_RAINFALL": {
-      "sample_count": 192,
+      "sample_count": 3,
       "Level0_Raw": {
-        "MAE": 8.925,
-        "RMSE": 18.066,
-        "Mean_Bias": -5.383,
-        "Correlation": 0.977
+        "MAE": 4.327,
+        "RMSE": 6.197,
+        "Mean_Bias": 4.327,
+        "Correlation": 0.988
       },
       "Level1_EQM": {
-        "MAE": 5.81,
-        "RMSE": 9.894,
-        "Mean_Bias": 0.766,
-        "Correlation": 0.98
+        "MAE": 3.783,
+        "RMSE": 5.384,
+        "Mean_Bias": 3.783,
+        "Correlation": 0.992
       },
       "Level2_StdML": {
-        "MAE": 5.18,
-        "RMSE": 9.026,
-        "Mean_Bias": -0.558,
-        "Correlation": 0.983
+        "MAE": 10.601,
+        "RMSE": 11.273,
+        "Mean_Bias": 0.237,
+        "Correlation": 0.969
       },
       "Level3_RegimeAware": {
-        "MAE": 4.942,
-        "RMSE": 8.7,
-        "Mean_Bias": -0.124,
-        "Correlation": 0.983
+        "MAE": 12.846,
+        "RMSE": 13.365,
+        "Mean_Bias": 0.879,
+        "Correlation": 0.963
+      }
+    },
+    "WESTERN_DISTURBANCE": {
+      "sample_count": 2,
+      "Level0_Raw": {
+        "MAE": 4.625,
+        "RMSE": 5.494,
+        "Mean_Bias": 4.625,
+        "Correlation": -1.0
+      },
+      "Level1_EQM": {
+        "MAE": 3.609,
+        "RMSE": 4.596,
+        "Mean_Bias": 3.609,
+        "Correlation": -1.0
+      },
+      "Level2_StdML": {
+        "MAE": 4.936,
+        "RMSE": 4.993,
+        "Mean_Bias": 4.936,
+        "Correlation": 1.0
+      },
+      "Level3_RegimeAware": {
+        "MAE": 4.916,
+        "RMSE": 4.916,
+        "Mean_Bias": 4.916,
+        "Correlation": 1.0
       }
     }
   },
-  "timestamp": "2026-10-01T12:32:33.156636"
+  "timestamp": "2026-10-03T05:20:17.958192"
 }

@@ -1,169 +1,893 @@
 {
+  "test_period": "2024-06-01 to 2024-09-30",
+  "test_samples": 15,
   "continuous_metrics": {
     "Raw_NWP": {
-      "Model": "Level 0 (Raw NWP)",
-      "MAE": 6.98,
-      "RMSE": 8.75,
-      "Mean_Bias": 1.92,
+      "MAE": 6.977,
+      "RMSE": 8.749,
+      "Mean_Bias": 1.917,
       "Correlation": 0.962
     },
     "Level1_Quantile_Mapping": {
-      "Model": "Level 1 (EQM)",
-      "MAE": 7.65,
-      "RMSE": 9.62,
-      "Mean_Bias": 1.22,
+      "MAE": 7.647,
+      "RMSE": 9.623,
+      "Mean_Bias": 1.218,
       "Correlation": 0.951
     },
     "Level2_Standard_ML": {
-      "Model": "Level 2 (Standard ML)",
-      "MAE": 11.99,
-      "RMSE": 20.47,
-      "Mean_Bias": -4.8,
+      "MAE": 11.991,
+      "RMSE": 20.468,
+      "Mean_Bias": -4.799,
       "Correlation": 0.803
     },
     "VARUNA_AI_Level3_Regime_Aware": {
-      "Model": "Level 3 (VARUNA-AI Regime-Aware)",
-      "MAE": 11.61,
-      "RMSE": 20.12,
-      "Mean_Bias": -4.31,
-      "Correlation": 0.828
+      "MAE": 11.961,
+      "RMSE": 19.367,
+      "Mean_Bias": -3.954,
+      "Correlation": 0.846
     }
   },
   "categorical_metrics": [
     {
       "Threshold_mm": 2.5,
-      "Model": "Raw_NWP",
-      "CSI": 0.846,
+      "Hits": 11,
+      "False_Alarms": 2,
+      "Misses": 0,
+      "Correct_Negatives": 2,
       "POD": 1.0,
-      "FAR": 0.154,
-      "ETS": 0.423
+      "FAR": 0.1538,
+      "CSI": 0.8462,
+      "ETS": 0.4231,
+      "Frequency_Bias": 1.1818,
+      "HK_Score": 0.5,
+      "Model": "Raw_NWP"
     },
     {
       "Threshold_mm": 2.5,
-      "Model": "Level1_EQM",
-      "CSI": 0.846,
+      "Hits": 11,
+      "False_Alarms": 2,
+      "Misses": 0,
+      "Correct_Negatives": 2,
       "POD": 1.0,
-      "FAR": 0.154,
-      "ETS": 0.423
+      "FAR": 0.1538,
+      "CSI": 0.8462,
+      "ETS": 0.4231,
+      "Frequency_Bias": 1.1818,
+      "HK_Score": 0.5,
+      "Model": "Level1_Quantile_Mapping"
     },
     {
       "Threshold_mm": 2.5,
-      "Model": "Level2_Std_ML",
-      "CSI": 0.733,
+      "Hits": 11,
+      "False_Alarms": 4,
+      "Misses": 0,
+      "Correct_Negatives": 0,
       "POD": 1.0,
-      "FAR": 0.267,
-      "ETS": 0.0
+      "FAR": 0.2667,
+      "CSI": 0.7333,
+      "ETS": 0.0,
+      "Frequency_Bias": 1.3636,
+      "HK_Score": 0.0,
+      "Model": "Level2_Standard_ML"
     },
     {
       "Threshold_mm": 2.5,
-      "Model": "VARUNA_AI_Level3",
-      "CSI": 0.733,
+      "Hits": 11,
+      "False_Alarms": 4,
+      "Misses": 0,
+      "Correct_Negatives": 0,
       "POD": 1.0,
-      "FAR": 0.267,
-      "ETS": 0.0
+      "FAR": 0.2667,
+      "CSI": 0.7333,
+      "ETS": 0.0,
+      "Frequency_Bias": 1.3636,
+      "HK_Score": 0.0,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
     },
     {
       "Threshold_mm": 15.6,
-      "Model": "Raw_NWP",
-      "CSI": 0.727,
-      "POD": 0.889,
+      "Hits": 8,
+      "False_Alarms": 2,
+      "Misses": 1,
+      "Correct_Negatives": 4,
+      "POD": 0.8889,
       "FAR": 0.2,
-      "ETS": 0.4
+      "CSI": 0.7273,
+      "ETS": 0.4,
+      "Frequency_Bias": 1.1111,
+      "HK_Score": 0.5556,
+      "Model": "Raw_NWP"
     },
     {
       "Threshold_mm": 15.6,
-      "Model": "Level1_EQM",
-      "CSI": 0.636,
-      "POD": 0.778,
-      "FAR": 0.222,
-      "ETS": 0.286
+      "Hits": 8,
+      "False_Alarms": 2,
+      "Misses": 1,
+      "Correct_Negatives": 4,
+      "POD": 0.8889,
+      "FAR": 0.2,
+      "CSI": 0.7273,
+      "ETS": 0.4,
+      "Frequency_Bias": 1.1111,
+      "HK_Score": 0.5556,
+      "Model": "Level1_Quantile_Mapping"
     },
     {
       "Threshold_mm": 15.6,
-      "Model": "Level2_Std_ML",
-      "CSI": 0.7,
-      "POD": 0.778,
+      "Hits": 7,
+      "False_Alarms": 1,
+      "Misses": 2,
+      "Correct_Negatives": 5,
+      "POD": 0.7778,
       "FAR": 0.125,
-      "ETS": 0.423
+      "CSI": 0.7,
+      "ETS": 0.4231,
+      "Frequency_Bias": 0.8889,
+      "HK_Score": 0.6111,
+      "Model": "Level2_Standard_ML"
     },
     {
       "Threshold_mm": 15.6,
-      "Model": "VARUNA_AI_Level3",
-      "CSI": 0.636,
-      "POD": 0.778,
-      "FAR": 0.222,
-      "ETS": 0.286
+      "Hits": 8,
+      "False_Alarms": 2,
+      "Misses": 1,
+      "Correct_Negatives": 4,
+      "POD": 0.8889,
+      "FAR": 0.2,
+      "CSI": 0.7273,
+      "ETS": 0.4,
+      "Frequency_Bias": 1.1111,
+      "HK_Score": 0.5556,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
     },
     {
       "Threshold_mm": 64.5,
-      "Model": "Raw_NWP",
-      "CSI": 1.0,
+      "Hits": 2,
+      "False_Alarms": 0,
+      "Misses": 0,
+      "Correct_Negatives": 13,
       "POD": 1.0,
       "FAR": 0.0,
-      "ETS": 1.0
+      "CSI": 1.0,
+      "ETS": 1.0,
+      "Frequency_Bias": 1.0,
+      "HK_Score": 1.0,
+      "Model": "Raw_NWP"
     },
     {
       "Threshold_mm": 64.5,
-      "Model": "Level1_EQM",
-      "CSI": 1.0,
+      "Hits": 2,
+      "False_Alarms": 0,
+      "Misses": 0,
+      "Correct_Negatives": 13,
       "POD": 1.0,
       "FAR": 0.0,
-      "ETS": 1.0
+      "CSI": 1.0,
+      "ETS": 1.0,
+      "Frequency_Bias": 1.0,
+      "HK_Score": 1.0,
+      "Model": "Level1_Quantile_Mapping"
     },
     {
       "Threshold_mm": 64.5,
-      "Model": "Level2_Std_ML",
-      "CSI": 0.0,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 2,
+      "Correct_Negatives": 13,
       "POD": 0.0,
       "FAR": 0.0,
-      "ETS": 0.0
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "Level2_Standard_ML"
     },
     {
       "Threshold_mm": 64.5,
-      "Model": "VARUNA_AI_Level3",
-      "CSI": 0.0,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 2,
+      "Correct_Negatives": 13,
       "POD": 0.0,
       "FAR": 0.0,
-      "ETS": 0.0
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
     },
     {
       "Threshold_mm": 115.6,
-      "Model": "Raw_NWP",
-      "CSI": 0.0,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 1,
+      "Correct_Negatives": 14,
       "POD": 0.0,
       "FAR": 0.0,
-      "ETS": 0.0
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "Raw_NWP"
     },
     {
       "Threshold_mm": 115.6,
-      "Model": "Level1_EQM",
-      "CSI": 0.0,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 1,
+      "Correct_Negatives": 14,
       "POD": 0.0,
       "FAR": 0.0,
-      "ETS": 0.0
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "Level1_Quantile_Mapping"
     },
     {
       "Threshold_mm": 115.6,
-      "Model": "Level2_Std_ML",
-      "CSI": 0.0,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 1,
+      "Correct_Negatives": 14,
       "POD": 0.0,
       "FAR": 0.0,
-      "ETS": 0.0
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "Level2_Standard_ML"
     },
     {
       "Threshold_mm": 115.6,
-      "Model": "VARUNA_AI_Level3",
-      "CSI": 0.0,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 1,
+      "Correct_Negatives": 14,
       "POD": 0.0,
       "FAR": 0.0,
-      "ETS": 0.0
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
+    },
+    {
+      "Threshold_mm": 204.5,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 0,
+      "Correct_Negatives": 15,
+      "POD": 0.0,
+      "FAR": 0.0,
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "Raw_NWP"
+    },
+    {
+      "Threshold_mm": 204.5,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 0,
+      "Correct_Negatives": 15,
+      "POD": 0.0,
+      "FAR": 0.0,
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "Level1_Quantile_Mapping"
+    },
+    {
+      "Threshold_mm": 204.5,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 0,
+      "Correct_Negatives": 15,
+      "POD": 0.0,
+      "FAR": 0.0,
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "Level2_Standard_ML"
+    },
+    {
+      "Threshold_mm": 204.5,
+      "Hits": 0,
+      "False_Alarms": 0,
+      "Misses": 0,
+      "Correct_Negatives": 15,
+      "POD": 0.0,
+      "FAR": 0.0,
+      "CSI": 0.0,
+      "ETS": 0.0,
+      "Frequency_Bias": 0.0,
+      "HK_Score": 0.0,
+      "Model": "VARUNA_AI_Level3_Regime_Aware"
     }
   ],
-  "dataset_summary": {
-    "source_csv": "C:\\Users\\rajat\\VARUNA-AI\\VARUNA_AI_100_district_sample_named.csv",
-    "total_districts": 100,
-    "train_samples": 70,
-    "val_samples": 15,
-    "test_samples": 15
-  }
+  "regime_breakdown": {
+    "ACTIVE_MONSOON": {
+      "sample_count": 3,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 4.85,
+            "RMSE": 5.355,
+            "Mean_Bias": -3.743,
+            "Correlation": 0.988
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 3,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 5.367,
+            "RMSE": 6.681,
+            "Mean_Bias": -5.367,
+            "Correlation": 1.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 3,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 7.97,
+            "RMSE": 9.058,
+            "Mean_Bias": -5.643,
+            "Correlation": 0.871
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 3,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 8.683,
+            "RMSE": 9.765,
+            "Mean_Bias": -6.11,
+            "Correlation": 0.849
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 3,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        }
+      }
+    },
+    "BREAK_MONSOON": {
+      "sample_count": 3,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 5.67,
+            "RMSE": 6.197,
+            "Mean_Bias": 0.977,
+            "Correlation": 0.945
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 3,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 8.663,
+            "RMSE": 9.848,
+            "Mean_Bias": 2.81,
+            "Correlation": 0.919
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 3,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 4.673,
+            "RMSE": 5.223,
+            "Mean_Bias": -0.853,
+            "Correlation": 0.971
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 3,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 3.683,
+            "RMSE": 4.462,
+            "Mean_Bias": -0.837,
+            "Correlation": 0.963
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 3,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        }
+      }
+    },
+    "MONSOON_LOW_DEPRESSION": {
+      "sample_count": 2,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 9.01,
+            "RMSE": 9.329,
+            "Mean_Bias": -9.01,
+            "Correlation": 1.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 1,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 1,
+            "POD": 1.0,
+            "FAR": 0.0,
+            "CSI": 1.0,
+            "ETS": 1.0,
+            "Frequency_Bias": 1.0,
+            "HK_Score": 1.0
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 11.67,
+            "RMSE": 12.406,
+            "Mean_Bias": -11.67,
+            "Correlation": 1.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 1,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 1,
+            "POD": 1.0,
+            "FAR": 0.0,
+            "CSI": 1.0,
+            "ETS": 1.0,
+            "Frequency_Bias": 1.0,
+            "HK_Score": 1.0
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 40.835,
+            "RMSE": 51.399,
+            "Mean_Bias": -40.835,
+            "Correlation": 1.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 1,
+            "Correct_Negatives": 1,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 36.22,
+            "RMSE": 46.751,
+            "Mean_Bias": -36.22,
+            "Correlation": 1.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 1,
+            "Correct_Negatives": 1,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        }
+      }
+    },
+    "COASTAL_RAINFALL": {
+      "sample_count": 2,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 16.425,
+            "RMSE": 17.282,
+            "Mean_Bias": 16.425,
+            "Correlation": 0.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 15.36,
+            "RMSE": 16.236,
+            "Mean_Bias": 15.36,
+            "Correlation": 0.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 9.295,
+            "RMSE": 10.985,
+            "Mean_Bias": 9.295,
+            "Correlation": 0.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 10.75,
+            "RMSE": 12.742,
+            "Mean_Bias": 10.75,
+            "Correlation": 0.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        }
+      }
+    },
+    "OROGRAPHIC_RAINFALL": {
+      "sample_count": 3,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 4.327,
+            "RMSE": 6.197,
+            "Mean_Bias": 4.327,
+            "Correlation": 0.988
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 1,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 1.0,
+            "FAR": 0.0,
+            "CSI": 1.0,
+            "ETS": 1.0,
+            "Frequency_Bias": 1.0,
+            "HK_Score": 1.0
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 3.78,
+            "RMSE": 5.381,
+            "Mean_Bias": 3.78,
+            "Correlation": 0.992
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 1,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 1.0,
+            "FAR": 0.0,
+            "CSI": 1.0,
+            "ETS": 1.0,
+            "Frequency_Bias": 1.0,
+            "HK_Score": 1.0
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 10.603,
+            "RMSE": 11.276,
+            "Mean_Bias": 0.237,
+            "Correlation": 0.969
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 1,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 12.847,
+            "RMSE": 13.365,
+            "Mean_Bias": 0.88,
+            "Correlation": 0.963
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 1,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        }
+      }
+    },
+    "WESTERN_DISTURBANCE": {
+      "sample_count": 2,
+      "models": {
+        "Raw_NWP": {
+          "continuous": {
+            "MAE": 4.625,
+            "RMSE": 5.494,
+            "Mean_Bias": 4.625,
+            "Correlation": -1.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "Level1_Quantile_Mapping": {
+          "continuous": {
+            "MAE": 3.61,
+            "RMSE": 4.599,
+            "Mean_Bias": 3.61,
+            "Correlation": -1.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "Level2_Standard_ML": {
+          "continuous": {
+            "MAE": 4.935,
+            "RMSE": 4.992,
+            "Mean_Bias": 4.935,
+            "Correlation": 1.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        },
+        "VARUNA_AI_Level3_Regime_Aware": {
+          "continuous": {
+            "MAE": 4.915,
+            "RMSE": 4.915,
+            "Mean_Bias": 4.915,
+            "Correlation": 1.0
+          },
+          "heavy_rain_64.5mm": {
+            "Threshold_mm": 64.5,
+            "Hits": 0,
+            "False_Alarms": 0,
+            "Misses": 0,
+            "Correct_Negatives": 2,
+            "POD": 0.0,
+            "FAR": 0.0,
+            "CSI": 0.0,
+            "ETS": 0.0,
+            "Frequency_Bias": 0.0,
+            "HK_Score": 0.0
+          }
+        }
+      }
+    }
+  },
+  "spatial_fss": {
+    "15.6mm": {
+      "window_1": {
+        "Raw_NWP": 1.0,
+        "VARUNA_AI": 1.0
+      },
+      "window_3": {
+        "Raw_NWP": 1.0,
+        "VARUNA_AI": 1.0
+      },
+      "window_5": {
+        "Raw_NWP": 1.0,
+        "VARUNA_AI": 1.0
+      }
+    },
+    "64.5mm": {
+      "window_1": {
+        "Raw_NWP": 1.0,
+        "VARUNA_AI": 1.0
+      },
+      "window_3": {
+        "Raw_NWP": 1.0,
+        "VARUNA_AI": 1.0
+      },
+      "window_5": {
+        "Raw_NWP": 1.0,
+        "VARUNA_AI": 1.0
+      }
+    },
+    "115.6mm": {
+      "window_1": {
+        "Raw_NWP": 1.0,
+        "VARUNA_AI": 1.0
+      },
+      "window_3": {
+        "Raw_NWP": 1.0,
+        "VARUNA_AI": 1.0
+      },
+      "window_5": {
+        "Raw_NWP": 1.0,
+        "VARUNA_AI": 1.0
+      }
+    }
+  },
+  "timestamp": "2026-10-03T10:50:24.693631"
 }

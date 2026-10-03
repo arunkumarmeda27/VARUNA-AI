@@ -32,7 +32,7 @@ jobs:
           python weather_data/create_m1_handoff.py
           test -f weather_data/processed/real_ml/M1_DATA_HANDOFF.md
 
-      - name: Verify training dataset availability
+      - name: Verify training datasets
         run: |
           test -f weather_data/processed/train_v1.0.0.parquet
           test -f weather_data/processed/val_v1.0.0.parquet
@@ -54,6 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: VARUNA-AI-M1-training-${{ github.run_number }}
+          if-no-files-found: error
           path: |
             weather_data/processed/real_ml/M1_DATA_HANDOFF.md
             weather_data/processed/real_ml/M1_CI_ORCHESTRATION_REPORT.txt

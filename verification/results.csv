@@ -1,5 +1,21 @@
-Model,MAE,RMSE,Mean_Bias,Correlation
-Level 0 (Raw NWP),6.98,8.75,1.92,0.962
-Level 1 (EQM),7.65,9.62,1.22,0.951
-Level 2 (Standard ML),11.99,20.47,-4.8,0.803
-Level 3 (VARUNA-AI Regime-Aware),11.61,20.12,-4.31,0.828
+Threshold_mm,Hits,False_Alarms,Misses,Correct_Negatives,POD,FAR,CSI,ETS,Frequency_Bias,HK_Score,Model
+2.5,11,2,0,2,1.0,0.1538,0.8462,0.4231,1.1818,0.5,Raw_NWP
+2.5,11,2,0,2,1.0,0.1538,0.8462,0.4231,1.1818,0.5,Level1_Quantile_Mapping
+2.5,11,4,0,0,1.0,0.2667,0.7333,0.0,1.3636,0.0,Level2_Standard_ML
+2.5,11,4,0,0,1.0,0.2667,0.7333,0.0,1.3636,0.0,VARUNA_AI_Level3_Regime_Aware
+15.6,8,2,1,4,0.8889,0.2,0.7273,0.4,1.1111,0.5556,Raw_NWP
+15.6,8,2,1,4,0.8889,0.2,0.7273,0.4,1.1111,0.5556,Level1_Quantile_Mapping
+15.6,7,1,2,5,0.7778,0.125,0.7,0.4231,0.8889,0.6111,Level2_Standard_ML
+15.6,8,2,1,4,0.8889,0.2,0.7273,0.4,1.1111,0.5556,VARUNA_AI_Level3_Regime_Aware
+64.5,2,0,0,13,1.0,0.0,1.0,1.0,1.0,1.0,Raw_NWP
+64.5,2,0,0,13,1.0,0.0,1.0,1.0,1.0,1.0,Level1_Quantile_Mapping
+64.5,0,0,2,13,0.0,0.0,0.0,0.0,0.0,0.0,Level2_Standard_ML
+64.5,0,0,2,13,0.0,0.0,0.0,0.0,0.0,0.0,VARUNA_AI_Level3_Regime_Aware
+115.6,0,0,1,14,0.0,0.0,0.0,0.0,0.0,0.0,Raw_NWP
+115.6,0,0,1,14,0.0,0.0,0.0,0.0,0.0,0.0,Level1_Quantile_Mapping
+115.6,0,0,1,14,0.0,0.0,0.0,0.0,0.0,0.0,Level2_Standard_ML
+115.6,0,0,1,14,0.0,0.0,0.0,0.0,0.0,0.0,VARUNA_AI_Level3_Regime_Aware
+204.5,0,0,0,15,0.0,0.0,0.0,0.0,0.0,0.0,Raw_NWP
+204.5,0,0,0,15,0.0,0.0,0.0,0.0,0.0,0.0,Level1_Quantile_Mapping
+204.5,0,0,0,15,0.0,0.0,0.0,0.0,0.0,0.0,Level2_Standard_ML
+204.5,0,0,0,15,0.0,0.0,0.0,0.0,0.0,0.0,VARUNA_AI_Level3_Regime_Aware
