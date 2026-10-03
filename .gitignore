@@ -1,17 +1,70 @@
+# ============================================================
+# VARUNA-AI Git Ignore
+# ============================================================
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Django
 *.sqlite3
 *.log
-.env
-.venv
-env/
-venv/
+db.sqlite3
+
+# Testing / coverage
 .pytest_cache/
 .coverage
 htmlcov/
+.tox/
+.nox/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Scientific/data files
 *.parquet
 *.joblib
-.DS_Store
+
+# Local raw meteorological data
 weather_data/raw/
+
+# Local processed ERA5 NetCDF datasets
 weather_data/processed/era5/
+
+# Local trained model artifacts
+weather_data/processed/real_ml/model3/
+
+# Local generated model outputs
+weather_data/processed/models/
+weather_data/processed/artifacts/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak

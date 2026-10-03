@@ -48,6 +48,27 @@ class TestForecastAPI(TestCase):
         self.assertIn("registered_models", data)
         self.assertGreater(data["count"], 0)
 
+    def test_predict_rejects_missing_scientific_inputs(self):
+        response = self.client.post(
+            "/api/v1/predict/",
+            data="{}",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("nwp_rainfall", response.json()["errors"])
+
+    def test_predict_rejects_malformed_json(self):
+        response = self.client.post(
+            "/api/v1/predict/",
+            data="{",
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_api_schema_endpoint(self):
+        response = self.client.get("/api/schema/")
+        self.assertEqual(response.status_code, 200)
+
     def test_dashboard_home_page(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)

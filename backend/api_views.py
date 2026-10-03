@@ -8,18 +8,21 @@ forecasts, districts, regimes, verification benchmarks, and provenance audit tra
 
 import os
 import json
+import logging
 
 from django.http import JsonResponse
+from django.conf import settings
+from django.utils import timezone
 from django.views.decorators.http import require_GET
-from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
-
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
 from django_ratelimit.decorators import ratelimit
+from drf_spectacular.utils import extend_schema
 
-from backend.api_serializers import PredictForecastRequestSerializer
+from backend.api_serializers import (
+    PredictForecastRequestSerializer,
+    PredictForecastResponseSerializer,
+)
 from backend.models import (
     ForecastRun,
     District,
@@ -28,7 +31,6 @@ from backend.models import (
 )
 from backend.service import ForecastService
 from geospatial.districts.district_geometry import get_districts_geojson
-
 
 VERIFICATION_DIR = os.path.join(
     os.path.dirname(os.path.dirname(__file__)),
@@ -40,6 +42,7 @@ REGIMES_EVAL_DIR = os.path.join(
     "regimes",
     "evaluation",
 )
+logger = logging.getLogger(__name__)
 
 
 @require_GET
@@ -289,7 +292,7 @@ def _format_forecast_run_response(
     })
 
 
-@require_GET
+    self.assertIn("nwp_rainfall", data["errors"])
 def get_districts(request):
     """Returns all district metadata and administrative boundaries."""
     ForecastService.seed_districts_if_needed()
@@ -530,29 +533,45 @@ def get_model_registry(request):
 @require_GET
 def get_firebase_config(request):
     """Returns Firebase client initialization parameters."""
-    import base64
-
-    encoded_default = (
-        "QUl6YVN5QS0yWkkzY2l3cXl5UmpuMEk4Yzg5NjVkTkFFNmYtU1hR"
-    )
-
-    api_key = (
-        os.environ.get("FIREBASE_API_KEY")
-        or base64.b64decode(encoded_default).decode("utf-8")
-    )
-
-    return JsonResponse({
-        "apiKey": api_key,
-        "authDomain": "varuna-ai-960d4.firebaseapp.com",
-        "projectId": "varuna-ai-960d4",
-        "storageBucket": "varuna-ai-960d4.firebasestorage.app",
-        "messagingSenderId": "1067430150983",
-        "appId": "1:1067430150983:web:40c3b7a667dfd484c18262",
-        "measurementId": "G-N7WXJBJHT7",
-    })
+    configuration = {
+        "apiKey": os.environ.get("FIREBASE_API_KEY"),
+        "authDomain": os.environ.get("FIREBASE_AUTH_DOMAIN"),
+        "projectId": os.environ.get("FIREBASE_PROJECT_ID"),
+        "storageBucket": os.environ.get("FIREBASE_STORAGE_BUCKET"),
+        "messagingSenderId": os.environ.get("FIREBASE_MESSAGING_SENDER_ID"),
+        "appId": os.environ.get("FIREBASE_APP_ID"),
+        "measurementId": os.environ.get("FIREBASE_MEASUREMENT_ID"),
+    }
+    if not all(configuration.values()):
+        return JsonResponse(
+            {
+                "status": "ERROR",
+                "message": "Authentication configuration is unavailable.",
+            },
+            status=503,
+        )
+    return JsonResponse(configuration)
 
 
-@csrf_exempt
+@ratelimit(
+    key="ip",
+    rate=settings.API_PREDICT_RATE,
+    method="ALL",
+    block=False,
+)
+@extend_schema(
+    methods=["POST"],
+    request=PredictForecastRequestSerializer,
+    responses={200: PredictForecastResponseSerializer},
+    description="Run forecast inference with explicitly supplied model inputs.",
+)
+@extend_schema(
+    methods=["GET"],
+    parameters=[PredictForecastRequestSerializer],
+    responses={200: PredictForecastResponseSerializer},
+    description="Run forecast inference with explicitly supplied model inputs.",
+)
+@api_view(["GET", "POST"])
 def predict_custom_forecast(request):
     """
     On-demand inference endpoint.
@@ -579,15 +598,19 @@ def predict_custom_forecast(request):
         ConformalQuantileEstimator,
     )
 
-    if request.method == "POST":
-        try:
-            body = json.loads(
-                request.body.decode("utf-8")
-            )
-        except Exception:
-            body = request.POST.dict()
-    else:
-        body = request.GET.dict()
+    if getattr(request, "limited", False):
+        return JsonResponse(
+            {"status": "ERROR", "message": "Request limit exceeded."},
+            status=429,
+        )
+
+    try:
+        body = request.data if request.method == "POST" else request.query_params
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse(
+            {"status": "ERROR", "message": "Malformed request body."},
+            status=400,
+        )
 
     serializer = PredictForecastRequestSerializer(
         data=body
@@ -606,70 +629,21 @@ def predict_custom_forecast(request):
     body = serializer.validated_data
 
     try:
-        nwp_rain = float(
-            body.get("nwp_rainfall", 45.0)
-        )
-
-        lat = float(
-            body.get("latitude", 12.97)
-        )
-
-        lon = float(
-            body.get("longitude", 77.59)
-        )
-
-        district_name = str(
-            body.get(
-                "district_name",
-                "Bengaluru Urban",
-            )
-        )
-
-        mslp = float(
-            body.get("mslp", 1002.4)
-        )
-
-        u850 = float(
-            body.get("u850", 18.5)
-        )
-
-        v850 = float(
-            body.get("v850", 4.2)
-        )
-
-        u200 = float(
-            body.get("u200", -28.4)
-        )
-
-        v200 = float(
-            body.get("v200", 0.5)
-        )
-
-        tcwv = float(
-            body.get("tcwv", 58.6)
-        )
-
-        rh700 = float(
-            body.get("rh700", 82.0)
-        )
-
-        cape = float(
-            body.get("cape", 2150.0)
-        )
-
-        trough_lat = float(
-            body.get(
-                "monsoon_trough_lat",
-                22.4,
-            )
-        )
-
-        shear = float(
-            body.get(
-                "vertical_wind_shear",
-                46.2,
-            )
-        )
+        nwp_rain = body["nwp_rainfall"]
+        lat = body["latitude"]
+        lon = body["longitude"]
+        district_name = body.get("district_name", "")
+        mslp = body["mslp"]
+        u850 = body["u850"]
+        v850 = body["v850"]
+        u200 = body["u200"]
+        v200 = body["v200"]
+        tcwv = body["tcwv"]
+        rh700 = body["rh700"]
+        cape = body["cape"]
+        trough_lat = body["monsoon_trough_lat"]
+        shear = body["vertical_wind_shear"]
+        valid_time = body.get("valid_time") or timezone.now().date()
 
         df_in = pd.DataFrame([{
             "nwp_rainfall": nwp_rain,
@@ -685,7 +659,7 @@ def predict_custom_forecast(request):
             "cape": cape,
             "monsoon_trough_lat": trough_lat,
             "vertical_wind_shear": shear,
-            "day_of_year": 200,
+            "day_of_year": valid_time.timetuple().tm_yday,
         }])
 
         engine = RainfallCorrectionEngine()
@@ -697,6 +671,14 @@ def predict_custom_forecast(request):
         prob_est = (
             HeavyRainfallProbabilityEstimator()
         )
+        if set(prob_est.THRESHOLDS) - set(prob_est.models):
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "message": "Forecast model artifacts are unavailable.",
+                },
+                status=503,
+            )
 
         proc = prob_est.estimate_probabilities(
             proc
@@ -705,6 +687,23 @@ def predict_custom_forecast(request):
         unc_est = (
             ConformalQuantileEstimator()
         )
+        if not all((unc_est.q10_model, unc_est.q50_model, unc_est.q90_model)):
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "message": "Forecast model artifacts are unavailable.",
+                },
+                status=503,
+            )
+
+        if not all((engine.level1, engine.level2, engine.level3)):
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "message": "Forecast model artifacts are unavailable.",
+                },
+                status=503,
+            )
 
         proc = unc_est.estimate_uncertainty(
             proc
@@ -712,131 +711,40 @@ def predict_custom_forecast(request):
 
         row = proc.iloc[0]
 
-        detected_regime = row.get(
-            "predicted_regime",
-            "ACTIVE_MONSOON",
-        )
-
-        regime_conf = float(
-            row.get(
-                "regime_confidence",
-                0.78,
-            )
-        )
-
-        corr_rain = float(
-            row.get(
-                "corrected_rainfall",
-                nwp_rain,
-            )
-        )
-
-        l0 = float(
-            row.get(
-                "rain_level0_raw",
-                nwp_rain,
-            )
-        )
-
-        l1 = float(
-            row.get(
-                "rain_level1_eqm",
-                nwp_rain,
-            )
-        )
-
-        l2 = float(
-            row.get(
-                "rain_level2_std_ml",
-                nwp_rain,
-            )
-        )
-
-        l3 = float(
-            row.get(
-                "rain_level3_varuna",
-                corr_rain,
-            )
-        )
+        detected_regime = row["predicted_regime"]
+        regime_conf = float(row["regime_confidence"])
+        l0 = float(row["rain_level0_raw"])
+        l1 = float(row["rain_level1_eqm"])
+        l2 = float(row["rain_level2_std_ml"])
+        l3 = float(row["rain_level3_varuna"])
 
         delta = float(
             round(abs(l3 - l0), 2)
         )
 
-        prob_heavy = float(
-            row.get(
-                "heavy_rain_probability",
-                row.get(
-                    "prob_exceed_64.5",
-                    0.5,
-                ),
-            )
-        )
+        prob_heavy = float(row["heavy_rain_probability"])
+        unc_lower = float(row["uncertainty_lower_10pct"])
+        unc_upper = float(row["uncertainty_upper_90pct"])
 
-        unc_lower = float(
-            row.get(
-                "uncertainty_lower_10pct",
-                max(
-                    0.0,
-                    l3 * 0.75,
-                ),
-            )
-        )
-
-        unc_upper = float(
-            row.get(
-                "uncertainty_upper_90pct",
-                l3 * 1.35,
-            )
-        )
-
-        if (
-            corr_rain >= 204.5
-            or (
-                prob_heavy >= 0.35
-                and corr_rain >= 64.5
-            )
-        ):
+        risk_category = row["operational_risk_level"]
+        if risk_category.startswith("RED_ALERT"):
             risk_code = "RED"
             action = (
                 "IMMEDIATE EVACUATION & FLOOD PREPAREDNESS. "
                 "NDRF & SDMA standby."
             )
-
-        elif (
-            corr_rain >= 115.6
-            or (
-                prob_heavy >= 0.30
-                and corr_rain >= 64.5
-            )
-            or (
-                prob_heavy >= 0.55
-                and corr_rain >= 35.5
-            )
-        ):
+        elif risk_category.startswith("ORANGE_ALERT"):
             risk_code = "ORANGE"
             action = (
                 "BE PREPARED. Heavy rainfall warning; "
                 "restrict movement in riparian areas."
             )
-
-        elif (
-            corr_rain >= 64.5
-            or (
-                prob_heavy >= 0.25
-                and corr_rain >= 15.6
-            )
-            or (
-                prob_heavy >= 0.60
-                and corr_rain >= 15.6
-            )
-        ):
+        elif risk_category.startswith("YELLOW_ALERT"):
             risk_code = "YELLOW"
             action = (
                 "BE AWARE. Moderate rainfall; "
                 "check local drainage channels."
             )
-
         else:
             risk_code = "GREEN"
             action = (
@@ -890,11 +798,12 @@ def predict_custom_forecast(request):
             },
         })
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Forecast inference failed.")
         return JsonResponse(
             {
                 "status": "ERROR",
-                "message": str(e),
+                "message": "Forecast inference failed.",
             },
-            status=400,
+            status=500,
         )
