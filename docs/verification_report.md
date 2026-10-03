@@ -1,9 +1,9 @@
 # VARUNA-AI Scientific Verification Report
 
-**Dataset Version**: `v1.0.0`
-**Verification Type**: District-level independent test-set verification
-**Test Samples Verified**: 15
-**Generated At**: 2026-10-03T12:03:08.621877
+**Dataset Version**: `v1.0.0`  
+**Verification Type**: District-level independent test-set verification  
+**Test Samples Verified**: 15  
+**Generated At**: 2026-10-03T12:26:33.286597  
 
 ---
 

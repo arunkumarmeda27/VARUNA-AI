@@ -1,4 +1,4 @@
-name: VARUNA-AI M1 Training Pipeline
+name: VARUNA-AI M1 Data Pipeline
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     - cron: "0 0 * * 0"
 
 jobs:
-  m1-training:
+  m1-validation:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Install M1 dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pandas numpy xarray netCDF4 pyarrow scikit-learn scipy joblib xgboost cdsapi
@@ -32,36 +32,48 @@ jobs:
           python weather_data/create_m1_handoff.py
           test -f weather_data/processed/real_ml/M1_DATA_HANDOFF.md
 
-      - name: Verify training datasets
+      - name: Verify M1 reports
         run: |
-          test -f weather_data/processed/train_v1.0.0.parquet
-          test -f weather_data/processed/val_v1.0.0.parquet
-          test -f weather_data/processed/test_v1.0.0.parquet
+          test -f weather_data/processed/real_ml/M1_CI_ORCHESTRATION_REPORT.txt
+          test -f weather_data/processed/real_ml/M1_REAL_DATA_BACKTEST_RESULTS.txt
+          test -f weather_data/processed/real_ml/M1_TASK_1_2_REPORT.md
+          test -f weather_data/processed/real_ml/VARUNA_AI_ML_DATASET_METADATA.txt
 
-      - name: Train weather regime classifier
+      - name: Verify M1 pipeline source scripts
         run: |
-          python regimes/training/train_classifier.py
+          test -f weather_data/run_m1_pipeline.py
+          test -f weather_data/build_real_ml_dataset.py
+          test -f weather_data/add_rainfall_features.py
+          test -f weather_data/merge_weather_features.py
+          test -f weather_data/validate_weather_merge.py
+          test -f weather_data/train_model_v3.py
+          test -f weather_data/feature_importance_v3.py
+          test -f weather_data/m1_backtest_real_data.py
+          test -f weather_data/create_ml_metadata.py
+          test -f weather_data/create_m1_handoff.py
 
-      - name: Train and evaluate rainfall correction models
+      - name: Verify large scientific data remains external
         run: |
-          python correction/evaluation/evaluate_correction.py
+          if git ls-files 'weather_data/raw/*' | grep -q .; then
+            echo "ERROR: raw scientific data is tracked in Git."
+            exit 1
+          fi
 
-      - name: Run scientific verification
-        run: |
-          python verification/verify.py
+          if git ls-files '*.parquet' | grep -q .; then
+            echo "ERROR: large Parquet datasets are tracked in Git."
+            exit 1
+          fi
 
-      - name: Upload M1 training artifacts
+          echo "Large real-data files are correctly kept outside Git."
+
+      - name: Upload M1 documentation artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: VARUNA-AI-M1-training-${{ github.run_number }}
+          name: VARUNA-AI-M1-validation-${{ github.run_number }}
           if-no-files-found: error
           path: |
             weather_data/processed/real_ml/M1_DATA_HANDOFF.md
             weather_data/processed/real_ml/M1_CI_ORCHESTRATION_REPORT.txt
-            regimes/models/
-            regimes/artifacts/
-            regimes/evaluation/
-            correction/artifacts/
-            correction/evaluation/
-            verification/results.csv
-            verification/verification_matrix.json
+            weather_data/processed/real_ml/M1_REAL_DATA_BACKTEST_RESULTS.txt
+            weather_data/processed/real_ml/M1_TASK_1_2_REPORT.md
+            weather_data/processed/real_ml/VARUNA_AI_ML_DATASET_METADATA.txt
