@@ -23,15 +23,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas numpy xarray netCDF4 pyarrow scikit-learn
 
-      - name: Run M1 pipeline
+      - name: Validate M1 pipeline orchestration
         run: |
-          python weather_data/run_m1_pipeline.py
+          python weather_data/run_m1_pipeline.py --ci
 
-      - name: Upload M1 outputs
+      - name: Upload M1 CI report
         uses: actions/upload-artifact@v4
         with:
-          name: VARUNA-AI-M1-output
+          name: VARUNA-AI-M1-CI-report
           path: |
-            weather_data/processed/real_ml/M1_DATA_HANDOFF.md
-            weather_data/processed/real_ml/M1_REAL_DATA_BACKTEST_RESULTS.txt
-            weather_data/processed/real_ml/VARUNA_AI_ML_DATASET_METADATA.txt
+            weather_data/processed/real_ml/M1_CI_ORCHESTRATION_REPORT.txt
