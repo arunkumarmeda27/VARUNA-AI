@@ -1,0 +1,77 @@
+VARUNA-AI FINAL ML DATASET
+============================================================
+
+Rows: 8723845
+Columns: 31
+Date start: 2021-01-08 00:00:00
+Date end: 2025-12-31 00:00:00
+
+COLUMNS
+------------------------------------------------------------
+time | dtype=datetime64[ns] | missing=0
+latitude | dtype=float64 | missing=0
+longitude | dtype=float64 | missing=0
+year | dtype=int32 | missing=0
+month | dtype=int32 | missing=0
+day | dtype=int32 | missing=0
+day_of_year | dtype=int32 | missing=0
+day_of_year_sin | dtype=float64 | missing=0
+day_of_year_cos | dtype=float64 | missing=0
+imd_rainfall | dtype=float32 | missing=0
+era5_rainfall | dtype=float32 | missing=0
+rainfall_error | dtype=float32 | missing=0
+imd_category | dtype=str | missing=0
+era5_category | dtype=str | missing=0
+imd_is_rain | dtype=int8 | missing=0
+imd_is_heavy | dtype=int8 | missing=0
+era5_is_rain | dtype=int8 | missing=0
+era5_is_heavy | dtype=int8 | missing=0
+era5_rainfall_log1p | dtype=float32 | missing=0
+era5_rainfall_lag1 | dtype=float32 | missing=0
+era5_rainfall_lag3 | dtype=float32 | missing=0
+era5_rainfall_lag7 | dtype=float32 | missing=0
+era5_rainfall_3day_sum | dtype=float64 | missing=0
+era5_rainfall_7day_sum | dtype=float64 | missing=0
+era5_rainfall_7day_mean | dtype=float64 | missing=0
+temperature_c | dtype=float32 | missing=0
+dewpoint_c | dtype=float32 | missing=0
+relative_humidity | dtype=float32 | missing=0
+u10 | dtype=float32 | missing=0
+v10 | dtype=float32 | missing=0
+wind_speed | dtype=float32 | missing=0
+
+WEATHER FEATURES
+------------------------------------------------------------
+temperature_c: min=-37.7421, mean=23.7628, max=43.1548
+dewpoint_c: min=-54.2322, mean=16.3379, max=29.9191
+relative_humidity: min=2.2973, mean=66.1266, max=100.0000
+u10: min=-13.5740, mean=0.4308, max=16.5154
+v10: min=-14.0051, mean=0.0396, max=18.9593
+wind_speed: min=0.0005, mean=1.9650, max=20.3411
+
+RAINFALL FEATURES
+------------------------------------------------------------
+era5_rainfall
+era5_rainfall_log1p
+era5_is_rain
+era5_is_heavy
+era5_rainfall_lag1
+era5_rainfall_lag3
+era5_rainfall_lag7
+era5_rainfall_3day_sum
+era5_rainfall_7day_sum
+era5_rainfall_7day_mean
+
+TARGET
+------------------------------------------------------------
+rainfall_error
+Formula: observed rainfall - ERA5/NWP rainfall forecast
+
+QUALITY CHECKS
+------------------------------------------------------------
+Weather missing values: 0
+Duplicate time/location rows: 0
+
+FINAL STATUS
+------------------------------------------------------------
+ML-ready dataset generated successfully.
