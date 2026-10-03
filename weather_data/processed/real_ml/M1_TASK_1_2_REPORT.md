@@ -354,6 +354,34 @@ Synthetic-data comparison is not included unless separately evaluated and docume
 
 
 
+\## Real-Data Held-Out Model-Ladder Evaluation
+
+The follow-up report `M1_REAL_MODEL_LADDER_BACKTEST_2025.md` evaluates Level 0
+raw ERA5 and Level 1 empirical quantile mapping on real held-out data. Level 1
+was fitted only on the 2021-2023 training period; 2024 is validation and 2025
+is held out for testing. The accompanying JSON records dataset SHA-256 and row
+counts.
+
+| Level | Status | Validation MAE | Validation RMSE | 2025 Test MAE | 2025 Test RMSE |
+|---|---|---:|---:|---:|---:|
+| Level 0 raw ERA5 | Evaluated | 3.283 | 11.418 | 3.391 | 11.058 |
+| Level 1 empirical quantile mapping | Evaluated | 4.705 | 14.925 | 4.783 | 14.159 |
+| Level 2 standard ML | Unavailable | n/a | n/a | n/a | n/a |
+| Level 3 regime-aware ML | Unavailable | n/a | n/a | n/a | n/a |
+
+Metrics above were calculated from the real dataset. Level 1 underperformed
+the raw ERA5 baseline on the 2025 test period. Levels 2 and 3 were not
+evaluated because compatible real pressure-level/synoptic features and
+real-data training provenance are unavailable. Existing sample-artifact
+results were not substituted.
+
+\## Verification Status
+Existing 15-row comparison artifacts are not an eligible synthetic benchmark: their
+dataset lineage goes through `VARUNA_AI_100_district_sample_named.csv` and lacks
+real temporal/spatial coverage. No new synthetic data or comparison results were
+created. The real-vs-synthetic comparison remains pending until an independently
+documented, previously existing synthetic benchmark with traceable lineage is available.
+
 \## Verification Status
 
 
@@ -386,11 +414,13 @@ Real-data results documentation: COMPLETE
 
 
 
-Four-tier model ladder comparison: PENDING
+Real 2025 held-out Level 0/1 comparison: COMPLETE
+
+Four-tier real-data model ladder comparison: PENDING (Levels 2 and 3 unavailable)
 
 
 
-Real-vs-synthetic quantitative comparison: PENDING unless a synthetic benchmark is separately produced.
+Real-vs-synthetic quantitative comparison: PENDING. No eligible synthetic benchmark was found. The existing verification artifacts cover 15 rows, have no valid-time column or real spatial grid, and the multi-model trainer consumes `VARUNA_AI_100_district_sample_named.csv`; these are excluded from the comparison. No synthetic rows or comparison metrics were generated.
 
 
 

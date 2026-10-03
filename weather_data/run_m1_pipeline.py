@@ -5,10 +5,20 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 STEPS = [
+    ("Build aligned IMD and rainfall-error inputs from real source files", "weather_data/ingestion/build_real_imd_observations.py"),
+    ("Build the real IMD/ERA5 ML dataset", "weather_data/build_real_ml_dataset.py"),
+    ("Create lagged ERA5 rainfall features", "weather_data/add_rainfall_features.py"),
+    ("Merge real ERA5 weather features", "weather_data/merge_weather_features.py"),
+    ("Validate merged real weather dataset", "weather_data/validate_weather_merge.py"),
+    ("Calculate real-data baseline backtest", "weather_data/m1_backtest_real_data.py"),
+    ("Evaluate available model ladder on held-out real data", "weather_data/real_data_model_ladder_backtest.py"),
     ("Train and evaluate Model 3 on real processed data", "weather_data/train_model_v3.py"),
+    ("Refresh real dataset metadata", "weather_data/create_ml_metadata.py"),
 ]
 
 CI_SCRIPTS = [
+    "weather_data/ingestion/build_real_imd_observations.py",
+    "weather_data/real_data_model_ladder_backtest.py",
     "process_era5_weather_daily.py",
     "weather_data/build_real_ml_dataset.py",
     "weather_data/add_rainfall_features.py",
@@ -19,6 +29,14 @@ CI_SCRIPTS = [
     "weather_data/m1_backtest_real_data.py",
     "weather_data/create_ml_metadata.py",
     "weather_data/create_m1_handoff.py",
+]
+
+REAL_DATA_INPUTS = [
+    f"weather_data/raw/imd_rainfall/RF25_ind{year}_rfp25.nc"
+    for year in range(2021, 2026)
+] + [
+    "weather_data/raw/era5/ERA5_daily_tp_2021_2025_aligned.nc",
+    "weather_data/processed/era5/ERA5_weather_daily_2021_2025.nc",
 ]
 
 
@@ -88,6 +106,9 @@ def run_local_pipeline():
 
 def run_ci_check():
     check_scripts()
+    missing_data = [
+        path for path in REAL_DATA_INPUTS if not (BASE_DIR / path).is_file()
+    ]
 
     output_dir = (
         BASE_DIR
@@ -100,14 +121,21 @@ def run_ci_check():
 
     report = output_dir / "M1_CI_ORCHESTRATION_REPORT.txt"
 
+    data_status = (
+        "Real-data status: unavailable; missing external inputs:\n"
+        + "".join(f"- {path}\n" for path in missing_data)
+        if missing_data
+        else "Real-data inputs are present, but CI source-check mode did not run training or evaluation.\n"
+    )
+
     report.write_text(
         "VARUNA-AI M1 CI ORCHESTRATION CHECK\n"
         "====================================\n\n"
         "Status: PASSED\n"
         "Mode: GitHub Actions CI validation\n\n"
-        "The M1 pipeline scripts were verified successfully.\n"
-        "Real IMD and ERA5 datasets are intentionally not stored\n"
-        "in the Git repository because weather_data/raw/ is ignored.\n\n"
+        "The M1 source scripts were verified successfully.\n"
+        "This CI mode does not execute data-dependent ingestion, training, or evaluation.\n"
+        f"{data_status}\n"
         "Local real-data execution remains available through:\n"
         "python weather_data/run_m1_pipeline.py\n",
         encoding="utf-8",

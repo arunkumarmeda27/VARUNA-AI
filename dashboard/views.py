@@ -4,14 +4,14 @@ Owner: Member 6 (Geospatial + Operational Interface Engineer)
 """
 
 import json
+from django.conf import settings
+from django.http import HttpResponse
 from django.shortcuts import render
+from django_ratelimit.decorators import ratelimit
 from backend.models import ForecastRun, District, DistrictForecast
-from backend.service import ForecastService
 
 def dashboard_index(request):
     """Renders the main operational scientific meteorological interface."""
-    ForecastService.seed_sample_forecast_runs()
-
     # Get available runs
     all_runs = ForecastRun.objects.all().order_by("-valid_time")
     selected_run_id = request.GET.get("run_id")
@@ -34,6 +34,14 @@ def dashboard_index(request):
     return render(request, "dashboard/index.html", context)
 
 
+@ratelimit(
+    key="ip",
+    rate=settings.API_LOGIN_PAGE_RATE,
+    method="GET",
+    block=False,
+)
 def login_view(request):
     """Renders the Firebase-authenticated login page."""
+    if getattr(request, "limited", False):
+        return HttpResponse("Request limit exceeded.", status=429)
     return render(request, "dashboard/login.html")

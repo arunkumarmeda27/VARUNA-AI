@@ -9,19 +9,33 @@ forecasts, districts, regimes, verification benchmarks, and provenance audit tra
 import os
 import json
 import logging
+from functools import wraps
+from datetime import timedelta
 
 from django.http import JsonResponse
 from django.conf import settings
+from django.db import DatabaseError, connections
 from django.utils import timezone
-from django.views.decorators.http import require_GET
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from django_ratelimit.decorators import ratelimit
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 
 from backend.api_serializers import (
+    APIErrorResponseSerializer,
+    DistrictForecastRecordSerializer,
+    DistrictForecastResponseSerializer,
+    DistrictsResponseSerializer,
+    FirebaseConfigurationResponseSerializer,
+    ForecastListResponseSerializer,
+    ForecastQuerySerializer,
+    HealthResponseSerializer,
+    LatestForecastResponseSerializer,
+    ModelRegistryResponseSerializer,
     PredictForecastRequestSerializer,
     PredictForecastResponseSerializer,
+    RealVerificationResponseSerializer,
+    RegimeEvaluationResponseSerializer,
 )
 from backend.models import (
     ForecastRun,
@@ -43,33 +57,149 @@ REGIMES_EVAL_DIR = os.path.join(
     "evaluation",
 )
 logger = logging.getLogger(__name__)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 
 
-@require_GET
+def _api_read_rate_limit(view):
+    @wraps(view)
+    def return_rate_limit_error(request, *args, **kwargs):
+        if getattr(request, "limited", False):
+            return JsonResponse(
+                {"status": "ERROR", "message": "Request limit exceeded."},
+                status=429,
+            )
+        return view(request, *args, **kwargs)
+
+    return ratelimit(
+        key="ip",
+        rate=settings.API_READ_RATE,
+        method="GET",
+        block=False,
+    )(return_rate_limit_error)
+
+
+def _document_get_api(
+    response_serializer=None,
+    *,
+    description,
+    parameters=None,
+    error_statuses=(429,),
+):
+    def decorate(view):
+        responses = {}
+        if response_serializer is not None:
+            responses[200] = response_serializer
+        for error_status in error_statuses:
+            responses[error_status] = APIErrorResponseSerializer
+        responses[500] = APIErrorResponseSerializer
+        drf_view = api_view(["GET"])(view)
+        documented_view = extend_schema(
+            parameters=parameters or [],
+            responses=responses,
+            description=description,
+        )(drf_view)
+        return _api_read_rate_limit(documented_view)
+
+    return decorate
+
+
+def _forecast_unavailable_response():
+    return JsonResponse(
+        {
+            "status": "ERROR",
+            "message": "No persisted real forecast is currently available.",
+        },
+        status=503,
+    )
+
+
+REQUIRED_REAL_PREDICTION_COMPONENTS = {
+    "Weather Regime Classifier",
+    "Level 1 Statistical Bias Correction",
+    "Level 2 Standard ML Correction (Model A)",
+    "Level 3 Regime-Aware ML Correction (Model B / VARUNA-AI)",
+    "Heavy Rainfall Probability Estimator",
+    "Uncertainty & Prediction Intervals",
+}
+
+
+def _real_prediction_provenance_available():
+    try:
+        recorded_components = set(
+            ModelProvenance.objects.filter(
+                component__in=REQUIRED_REAL_PREDICTION_COMPONENTS
+            ).values_list("component", flat=True)
+        )
+    except DatabaseError:
+        return False
+    return REQUIRED_REAL_PREDICTION_COMPONENTS.issubset(recorded_components)
+
+
+@_document_get_api(
+    HealthResponseSerializer,
+    description="Return service, persisted-forecast, and model-artifact availability.",
+)
 def health_check(request):
     """System health and diagnostic status."""
+    try:
+        connections["default"].ensure_connection()
+        database_status = "CONNECTED"
+        forecast_data_available = ForecastRun.objects.exists()
+        prediction_provenance_available = _real_prediction_provenance_available()
+    except DatabaseError:
+        database_status = "UNAVAILABLE"
+        forecast_data_available = False
+        prediction_provenance_available = False
+
+    correction_dir = os.path.join(PROJECT_ROOT, "correction", "artifacts")
+    probability_dir = os.path.join(PROJECT_ROOT, "probability", "artifacts")
+    model_artifacts_available = {
+        "regime_classifier": os.path.isfile(
+            os.path.join(PROJECT_ROOT, "regimes", "models", "regime_xgb_artifact.joblib")
+        ),
+        "quantile_mapping": os.path.isfile(
+            os.path.join(correction_dir, "level1_eqm.joblib")
+        ),
+        "standard_ml": os.path.isfile(
+            os.path.join(correction_dir, "level2_standard_xgb.joblib")
+        ),
+        "regime_aware_ml": os.path.isfile(
+            os.path.join(correction_dir, "level3_regime_aware_xgb.joblib")
+        ),
+        "heavy_rain_probability": all(
+            os.path.isfile(os.path.join(probability_dir, f"prob_{threshold}.joblib"))
+            for threshold in ("moderate", "heavy", "very_heavy", "extremely_heavy")
+        ),
+        "conformal_quantiles": os.path.isfile(
+            os.path.join(
+                PROJECT_ROOT,
+                "uncertainty",
+                "artifacts",
+                "conformal_quantiles.joblib",
+            )
+        ),
+    }
     return JsonResponse({
         "status": "HEALTHY",
         "service": "VARUNA-AI Forecast Engine",
         "version": "v1.0.0",
-        "database": "CONNECTED",
-        "models_loaded": {
-            "regime_classifier": True,
-            "quantile_mapping": True,
-            "standard_ml": True,
-            "regime_aware_ml": True,
-            "heavy_rain_probability": True,
-            "conformal_quantiles": True,
-        },
+        "database": database_status,
+        "forecast_data_available": forecast_data_available,
+        "prediction_provenance_available": prediction_provenance_available,
+        "model_artifacts_available": model_artifacts_available,
     })
 
 
-@require_GET
+@_document_get_api(
+    ForecastListResponseSerializer,
+    description="List persisted forecast runs.",
+    error_statuses=(429, 503),
+)
 def list_forecast_runs(request):
     """Returns list of available forecast runs."""
-    ForecastService.seed_sample_forecast_runs()
-
     runs = ForecastRun.objects.all().order_by("-valid_time")
+    if not runs.exists():
+        return _forecast_unavailable_response()
 
     data = [
         {
@@ -89,54 +219,81 @@ def list_forecast_runs(request):
     })
 
 
-@require_GET
+@_document_get_api(
+    LatestForecastResponseSerializer,
+    description="Return a persisted forecast matching validated query filters.",
+    parameters=[ForecastQuerySerializer],
+    error_statuses=(400, 404, 429, 503),
+)
 def get_latest_forecast(request):
     """Returns latest forecast run with all district products and GeoJSON layer."""
-    ForecastService.seed_sample_forecast_runs()
-
-    lead_time = request.GET.get("lead_time")
-    date_param = request.GET.get("date")
-    cycle_param = request.GET.get("cycle")
-    run_id = request.GET.get("run_id")
+    query_serializer = ForecastQuerySerializer(data=request.query_params)
+    if not query_serializer.is_valid():
+        return JsonResponse(
+            {
+                "status": "ERROR",
+                "message": "Invalid forecast query.",
+                "errors": query_serializer.errors,
+            },
+            status=400,
+        )
+    query_params = query_serializer.validated_data
+    lead_time = query_params.get("lead_time")
+    date_param = query_params.get("date")
+    cycle_param = query_params.get("cycle")
+    run_id = query_params.get("run_id")
 
     query = ForecastRun.objects.all()
 
     if run_id:
         query = query.filter(run_id=run_id)
 
-    if lead_time and lead_time.isdigit():
-        lt_filter = query.filter(lead_time_hours=int(lead_time))
-        if lt_filter.exists():
-            query = lt_filter
+    if lead_time is not None:
+        query = query.filter(lead_time_hours=lead_time)
 
-    if date_param and date_param not in ["today", "tomorrow", "day3"]:
-        d_filter = query.filter(valid_time=date_param)
-        if d_filter.exists():
-            query = d_filter
+    if date_param:
+        if date_param in {"today", "tomorrow", "day3"}:
+            day_offsets = {"today": 0, "tomorrow": 1, "day3": 2}
+            date_param = timezone.localdate() + timedelta(
+                days=day_offsets[date_param]
+            )
+        query = query.filter(valid_time=date_param)
 
-    run = (
-        query.order_by("-valid_time").first()
-        or ForecastRun.objects.all().order_by("-valid_time").first()
-    )
+    if cycle_param:
+        cycle_time = cycle_param.removesuffix(" UTC")
+        cycle_hour, cycle_minute = (int(part) for part in cycle_time.split(":", 1))
+        query = query.filter(
+            initialization_time__hour=cycle_hour,
+            initialization_time__minute=cycle_minute,
+        )
+
+    run = query.order_by("-valid_time").first()
 
     if not run:
+        if not ForecastRun.objects.exists():
+            return _forecast_unavailable_response()
         return JsonResponse(
-            {"error": "No forecast runs available"},
+            {"status": "ERROR", "message": "Forecast run not found."},
             status=404,
         )
 
     return _format_forecast_run_response(
         run,
-        lead_time=lead_time,
-        date_param=date_param,
-        cycle_param=cycle_param,
     )
 
 
-@require_GET
+@_document_get_api(
+    LatestForecastResponseSerializer,
+    description="Return a persisted forecast by run identifier.",
+    parameters=[
+        OpenApiParameter("run_id", OpenApiTypes.STR, OpenApiParameter.PATH)
+    ],
+    error_statuses=(404, 429, 503),
+)
 def get_forecast_by_id(request, run_id):
     """Returns specific forecast run data."""
-    ForecastService.seed_sample_forecast_runs()
+    if not ForecastRun.objects.exists():
+        return _forecast_unavailable_response()
 
     run = get_object_or_404(ForecastRun, run_id=run_id)
 
@@ -145,9 +302,6 @@ def get_forecast_by_id(request, run_id):
 
 def _format_forecast_run_response(
     run: ForecastRun,
-    lead_time=None,
-    date_param=None,
-    cycle_param=None,
 ):
     district_forecasts = (
         DistrictForecast.objects
@@ -155,85 +309,9 @@ def _format_forecast_run_response(
         .select_related("district")
     )
 
-    lt_hours = (
-        int(lead_time)
-        if lead_time and lead_time.isdigit()
-        else (
-            48
-            if date_param == "tomorrow"
-            else (
-                72
-                if date_param == "day3"
-                else run.lead_time_hours
-            )
-        )
-    )
-
-    dispersion_factor = (
-        1.0 + (lt_hours - 24) * 0.007
-        if lt_hours > 24
-        else 1.0
-    )
-
-    rain_scale = 1.0
-
-    if date_param == "tomorrow":
-        rain_scale = 1.08
-    elif date_param == "day3":
-        rain_scale = 0.91
-    elif date_param == "2025-05-18":
-        rain_scale = 1.25
-
     districts_data = []
 
     for df in district_forecasts:
-        raw_val = round(
-            df.raw_nwp_mean_mm * rain_scale,
-            1,
-        )
-
-        corr_val = round(
-            df.corrected_mean_mm * rain_scale,
-            1,
-        )
-
-        corr_max = round(
-            df.corrected_max_mm * rain_scale,
-            1,
-        )
-
-        delta_val = round(
-            corr_val - raw_val,
-            1,
-        )
-
-        uncert_w = round(
-            df.uncertainty_range_width * dispersion_factor,
-            1,
-        )
-
-        uncert_low = max(
-            0.0,
-            round(corr_val - uncert_w * 0.5, 1),
-        )
-
-        uncert_high = round(
-            corr_val + uncert_w * 0.5,
-            1,
-        )
-
-        heavy_prob = min(
-            0.99,
-            round(
-                df.heavy_rain_probability
-                * min(
-                    1.3,
-                    1.0 + (dispersion_factor - 1.0) * 0.6,
-                ),
-                3,
-            ),
-        )
-
         districts_data.append({
             "district_id": df.district.district_id,
             "district_name": df.district.name,
@@ -241,16 +319,16 @@ def _format_forecast_run_response(
             "zone": df.district.zone,
             "centroid_lat": df.district.centroid_lat,
             "centroid_lon": df.district.centroid_lon,
-            "raw_nwp_mean_mm": raw_val,
-            "corrected_mean_mm": corr_val,
-            "corrected_max_mm": corr_max,
-            "bias_correction_delta_mm": delta_val,
-            "heavy_rain_probability": heavy_prob,
+            "raw_nwp_mean_mm": df.raw_nwp_mean_mm,
+            "corrected_mean_mm": df.corrected_mean_mm,
+            "corrected_max_mm": df.corrected_max_mm,
+            "bias_correction_delta_mm": df.bias_correction_delta_mm,
+            "heavy_rain_probability": df.heavy_rain_probability,
             "prob_exceed_115mm": df.prob_exceed_115mm,
             "prob_exceed_204mm": df.prob_exceed_204mm,
-            "uncertainty_lower_10pct": uncert_low,
-            "uncertainty_upper_90pct": uncert_high,
-            "uncertainty_range_width": uncert_w,
+            "uncertainty_lower_10pct": df.uncertainty_lower_10pct,
+            "uncertainty_upper_90pct": df.uncertainty_upper_90pct,
+            "uncertainty_range_width": df.uncertainty_range_width,
             "risk_code": df.risk_code,
             "risk_label": df.risk_label,
         })
@@ -272,14 +350,12 @@ def _format_forecast_run_response(
 
     return JsonResponse({
         "forecast_run": {
-            "run_id": (
-                f"{run.run_id}_{cycle_param or '00Z'}_T{lt_hours}"
-            ).replace(":", ""),
+            "run_id": run.run_id,
             "initialization_time": run.initialization_time.isoformat(),
             "valid_time": run.valid_time.isoformat(),
-            "lead_time_hours": lt_hours,
-            "cycle": cycle_param or "00:00 UTC",
-            "date_param": date_param or "today",
+            "lead_time_hours": run.lead_time_hours,
+            "cycle": run.initialization_time.strftime("%H:%M UTC"),
+            "date_param": run.valid_time.isoformat(),
             "detected_regime": run.detected_regime,
             "regime_confidence": run.regime_confidence,
             "regime_probabilities": run.get_regime_probabilities(),
@@ -292,10 +368,16 @@ def _format_forecast_run_response(
     })
 
 
-    self.assertIn("nwp_rainfall", data["errors"])
+@_document_get_api(
+    DistrictsResponseSerializer,
+    description="Return district metadata and GeoJSON boundaries.",
+    error_statuses=(404, 429),
+)
 def get_districts(request):
     """Returns all district metadata and administrative boundaries."""
     ForecastService.seed_districts_if_needed()
+    if not District.objects.exists():
+        return JsonResponse({"status": "ERROR", "message": "No districts available."}, status=404)
 
     districts = District.objects.all()
 
@@ -319,21 +401,23 @@ def get_districts(request):
     })
 
 
-@require_GET
+@_document_get_api(
+    DistrictForecastResponseSerializer,
+    description="Return a persisted district forecast.",
+    parameters=[
+        OpenApiParameter("district_id", OpenApiTypes.STR, OpenApiParameter.PATH)
+    ],
+    error_statuses=(404, 429, 503),
+)
 def get_district_forecast(request, district_id):
     """Returns forecast history and current prediction for a specific district."""
-    ForecastService.seed_sample_forecast_runs()
+    latest_run = ForecastRun.objects.all().order_by("-valid_time").first()
+    if latest_run is None:
+        return _forecast_unavailable_response()
 
     district = get_object_or_404(
         District,
         district_id=district_id,
-    )
-
-    latest_run = (
-        ForecastRun.objects
-        .all()
-        .order_by("-valid_time")
-        .first()
     )
 
     df = get_object_or_404(
@@ -381,156 +465,118 @@ def get_district_forecast(request, district_id):
     })
 
 
-@require_GET
+@_document_get_api(
+    None,
+    description="Return real-data regime verification when such evaluation exists.",
+    error_statuses=(429, 503),
+)
 def get_regime_analytics(request):
-    """Returns weather regime classification performance and synoptic indicators."""
-    eval_path = os.path.join(
-        REGIMES_EVAL_DIR,
-        "regime_evaluation_report.json",
+    """Return real-data regime verification only when available."""
+    return JsonResponse(
+        {
+            "status": "ERROR",
+            "message": "Real-data regime evaluation is unavailable.",
+        },
+        status=503,
     )
 
-    if os.path.exists(eval_path):
-        with open(eval_path, "r", encoding="utf-8") as f:
-            eval_data = json.load(f)
-    else:
-        eval_data = {
-            "status": "Evaluation report not generated yet"
-        }
 
-    return JsonResponse(eval_data)
-
-
-@require_GET
+@_document_get_api(
+    RealVerificationResponseSerializer,
+    description="Return the calculated held-out real IMD/ERA5 verification report.",
+    error_statuses=(429, 503),
+)
 def get_verification_benchmarks(request):
-    """Returns scientific verification results."""
+    """Returns held-out verification derived from real IMD/ERA5 data."""
     v_path = os.path.join(
         VERIFICATION_DIR,
-        "verification_matrix.json",
+        "..",
+        "weather_data",
+        "processed",
+        "real_ml",
+        "M1_REAL_MODEL_LADDER_BACKTEST_2025.json",
     )
 
-    if os.path.exists(v_path):
+    if not os.path.isfile(v_path):
+        return JsonResponse(
+            {
+                "status": "ERROR",
+                "message": "Real-data verification is unavailable.",
+            },
+            status=503,
+        )
+
+    try:
         with open(v_path, "r", encoding="utf-8") as f:
             v_data = json.load(f)
-    else:
-        v_data = {
-            "status": "Verification matrix not generated yet"
-        }
+    except (OSError, json.JSONDecodeError):
+        return JsonResponse(
+            {
+                "status": "ERROR",
+                "message": "Real-data verification is unavailable.",
+            },
+            status=503,
+        )
 
-    return JsonResponse(v_data)
+    return JsonResponse({"status": "AVAILABLE", **v_data})
 
 
-@require_GET
+@_document_get_api(
+    ModelRegistryResponseSerializer,
+    description="Return model records backed by persisted provenance.",
+    error_statuses=(429, 503),
+)
 def get_model_registry(request):
     """Returns model versions, feature sets, training periods, and provenance."""
+    provenance_rows = ModelProvenance.objects.all().order_by(
+        "component",
+        "-created_at",
+    )
+    if not provenance_rows.exists():
+        return JsonResponse(
+            {
+                "status": "ERROR",
+                "message": "Model provenance is unavailable.",
+            },
+            status=503,
+        )
 
-    models_info = [
-        {
-            "component": "Weather Regime Classifier",
-            "model_name": "Regime-XGB-Classifier",
-            "model_version": "regime-xgb-v1.0.0",
-            "algorithm": "Calibrated XGBoost Multi-Class",
-            "dataset_version": "v1.0.0",
-            "training_period": "2018-06-01 to 2022-09-30",
-            "val_period": "2023-06-01 to 2023-09-30",
-            "test_period": "2024-06-01 to 2024-09-30",
-            "input_features": [
-                "u850",
-                "v850",
-                "u200",
-                "v200",
-                "mslp",
-                "tcwv",
-                "rh700",
-                "cape",
-                "monsoon_trough_lat",
-                "vorticity_proxy",
-                "moisture_flux_index",
-            ],
-        },
-        {
-            "component": "Level 1 Statistical Bias Correction",
-            "model_name": "Empirical Quantile Mapping",
-            "model_version": "EQM-v1.0.0",
-            "algorithm": "Non-parametric Piecewise ECDF Transfer",
-            "dataset_version": "v1.0.0",
-            "training_period": "2018-06-01 to 2022-09-30",
-            "val_period": "2023-06-01 to 2023-09-30",
-            "test_period": "2024-06-01 to 2024-09-30",
-            "input_features": [
-                "nwp_rainfall",
-            ],
-        },
-        {
-            "component": "Level 2 Standard ML Correction (Model A)",
-            "model_name": "Standard-XGB-Regressor",
-            "model_version": "Standard-XGB-v1.0.0",
-            "algorithm": "Gradient Boosted Decision Trees",
-            "dataset_version": "v1.0.0",
-            "training_period": "2018-06-01 to 2022-09-30",
-            "val_period": "2023-06-01 to 2023-09-30",
-            "test_period": "2024-06-01 to 2024-09-30",
-            "input_features": [
-                "nwp_rainfall",
-                "u850",
-                "v850",
-                "u200",
-                "v200",
-                "mslp",
-                "tcwv",
-                "rh700",
-                "cape",
-                "latitude",
-                "longitude",
-            ],
-        },
-        {
-            "component": "Level 3 Regime-Aware ML Correction (Model B / VARUNA-AI)",
-            "model_name": "VARUNA-Regime-Aware-XGB",
-            "model_version": "VARUNA-Level3-XGB-v1.0.0",
-            "algorithm": "Regime-Coupled Gradient Boosted Decision Trees",
-            "dataset_version": "v1.0.0",
-            "training_period": "2018-06-01 to 2022-09-30",
-            "val_period": "2023-06-01 to 2023-09-30",
-            "test_period": "2024-06-01 to 2024-09-30",
-            "input_features": [
-                "nwp_rainfall",
-                "weather_features",
-                "regime_probabilities",
-                "orographic_flux_idx",
-                "offshore_trough_idx",
-                "vorticity_proxy",
-                "moisture_flux_index",
-            ],
-        },
-        {
-            "component": "Heavy Rainfall Probability Estimator",
-            "model_name": "Threshold-Calibrated-GBDT",
-            "model_version": "Prob-Exceed-v1.0.0",
-            "algorithm": "Isotonically Calibrated XGBoost Classifiers",
-            "dataset_version": "v1.0.0",
-            "thresholds": [
-                15.6,
-                64.5,
-                115.6,
-                204.5,
-            ],
-        },
-        {
-            "component": "Uncertainty & Prediction Intervals",
-            "model_name": "Conformal-Quantile-Estimator",
-            "model_version": "Conformal-Quantile-v1.0.0",
-            "algorithm": "Pinball Quantile Loss (q10, q50, q90) + Split Conformal Calibration",
-            "coverage": "80% empirical prediction interval",
-        },
-    ]
-
+    models_info = []
+    for provenance in provenance_rows:
+        try:
+            metrics = json.loads(provenance.metrics_json)
+        except (TypeError, json.JSONDecodeError):
+            return JsonResponse(
+                {
+                    "status": "ERROR",
+                    "message": "Model provenance is unavailable.",
+                },
+                status=503,
+            )
+        models_info.append(
+            {
+                "component": provenance.component,
+                "model_name": provenance.model_name,
+                "model_version": provenance.model_version,
+                "dataset_version": provenance.dataset_version,
+                "training_period": provenance.training_period,
+                "val_period": provenance.val_period,
+                "test_period": provenance.test_period,
+                "metrics": metrics,
+                "created_at": provenance.created_at.isoformat(),
+            }
+        )
     return JsonResponse({
         "registered_models": models_info,
         "count": len(models_info),
     })
 
 
-@require_GET
+@_document_get_api(
+    FirebaseConfigurationResponseSerializer,
+    description="Return environment-configured Firebase client settings.",
+    error_statuses=(429, 503),
+)
 def get_firebase_config(request):
     """Returns Firebase client initialization parameters."""
     configuration = {
@@ -562,13 +608,25 @@ def get_firebase_config(request):
 @extend_schema(
     methods=["POST"],
     request=PredictForecastRequestSerializer,
-    responses={200: PredictForecastResponseSerializer},
+    responses={
+        200: PredictForecastResponseSerializer,
+        400: APIErrorResponseSerializer,
+        429: APIErrorResponseSerializer,
+        500: APIErrorResponseSerializer,
+        503: APIErrorResponseSerializer,
+    },
     description="Run forecast inference with explicitly supplied model inputs.",
 )
 @extend_schema(
     methods=["GET"],
     parameters=[PredictForecastRequestSerializer],
-    responses={200: PredictForecastResponseSerializer},
+    responses={
+        200: PredictForecastResponseSerializer,
+        400: APIErrorResponseSerializer,
+        429: APIErrorResponseSerializer,
+        500: APIErrorResponseSerializer,
+        503: APIErrorResponseSerializer,
+    },
     description="Run forecast inference with explicitly supplied model inputs.",
 )
 @api_view(["GET", "POST"])
@@ -587,16 +645,6 @@ def predict_custom_forecast(request):
     """
 
     import pandas as pd
-
-    from correction.models.correction_engine import (
-        RainfallCorrectionEngine,
-    )
-    from probability.heavy_rainfall import (
-        HeavyRainfallProbabilityEstimator,
-    )
-    from uncertainty.conformal_quantiles import (
-        ConformalQuantileEstimator,
-    )
 
     if getattr(request, "limited", False):
         return JsonResponse(
@@ -627,6 +675,25 @@ def predict_custom_forecast(request):
         )
 
     body = serializer.validated_data
+
+    if not _real_prediction_provenance_available():
+        return JsonResponse(
+            {
+                "status": "ERROR",
+                "message": "Real-data model provenance is unavailable.",
+            },
+            status=503,
+        )
+
+    from correction.models.correction_engine import (
+        RainfallCorrectionEngine,
+    )
+    from probability.heavy_rainfall import (
+        HeavyRainfallProbabilityEstimator,
+    )
+    from uncertainty.conformal_quantiles import (
+        ConformalQuantileEstimator,
+    )
 
     try:
         nwp_rain = body["nwp_rainfall"]

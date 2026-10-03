@@ -241,9 +241,12 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 API_PREDICT_RATE = os.getenv("DJANGO_API_PREDICT_RATE", "30/m")
+API_READ_RATE = os.getenv("DJANGO_API_READ_RATE", "120/m")
+API_LOGIN_PAGE_RATE = os.getenv("DJANGO_API_LOGIN_PAGE_RATE", "30/m")
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "backend.api_exceptions.api_exception_handler",
 }
 
 SPECTACULAR_SETTINGS = {
