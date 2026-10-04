@@ -1,0 +1,50 @@
+name: VARUNA-AI M1 Weekly Real-Data Pipeline
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * 1"
+
+jobs:
+  m1-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate real meteorological dataset
+        run: |
+          python weather_data/validate_real_ml_dataset.py
+
+      - name: Train regime classifier
+        run: |
+          python regimes/train_regime_classifier.py
+
+      - name: Train correction models
+        run: |
+          python weather_data/real_data_model_ladder_backtest.py
+
+      - name: Run evaluation
+        run: |
+          python verification/verify.py
+
+      - name: Upload M1 metrics and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m1-pipeline-results
+          path: |
+            correction/evaluation/
+            regimes/evaluation/
+            weather_data/processed/real_ml/M1_TASK_1_2_REPORT.md
