@@ -54,25 +54,8 @@ let historicalTimeseriesChart = null;
 
 let autoRefreshTimer = null;
 let allDistrictsForecast = [];
-
-// Operational Fallback Data
-const OPERATIONAL_DATA = {
-  regimes: [
-    { name: "Active Monsoon", value: 78, color: "#3b82f6" },
-    { name: "Monsoon Depression", value: 15, color: "#ef4444" },
-    { name: "Coastal Rainfall", value: 4, color: "#10b981" },
-    { name: "Break Monsoon", value: 3, color: "#f59e0b" },
-    { name: "Orographic Rainfall", value: 0, color: "#06b6d4" },
-    { name: "Western Disturbance", value: 0, color: "#8b5cf6" },
-  ],
-  comparisonDistricts: [
-    { name: "Bengaluru Urban", nwp: 40, corrected: 82, observed: 68 },
-    { name: "Mysuru", nwp: 28, corrected: 52, observed: 45 },
-    { name: "Shivamogga", nwp: 35, corrected: 62, observed: 58 },
-    { name: "Tumakuru", nwp: 25, corrected: 55, observed: 48 },
-    { name: "Dakshina Kannada", nwp: 60, corrected: 94, observed: 88 },
-  ],
-};
+let currentRegimeProbabilities = null;
+let currentSynopticFeatures = null;
 
 // ==========================================================================
 // Initialization & Authentication Lifecycle
@@ -460,11 +443,13 @@ function getPolygonStyle(feature) {
   let fillColor = currentTheme === "light" ? "#94a3b8" : "#1e293b";
 
   if (currentMapMode === "rainfall") {
-    const val = p.corrected_mean_mm ?? 50;
-    fillColor = getRainfallChoroplethColor(val);
+    if (hasNumericValue(p.corrected_mean_mm)) {
+      fillColor = getRainfallChoroplethColor(Number(p.corrected_mean_mm));
+    }
   } else {
-    const prob = p.heavy_rain_probability ?? 0.5;
-    fillColor = getProbabilityChoroplethColor(prob);
+    if (hasNumericValue(p.heavy_rain_probability)) {
+      fillColor = getProbabilityChoroplethColor(Number(p.heavy_rain_probability));
+    }
   }
 
   const strokeColor = currentTheme === "light" ? "#ffffff" : "#0f172a";
@@ -476,6 +461,13 @@ function getPolygonStyle(feature) {
     color: strokeColor,
     fillOpacity: 0.82,
   };
+}
+
+function hasNumericValue(value) {
+  return value !== null
+    && value !== undefined
+    && value !== ""
+    && Number.isFinite(Number(value));
 }
 
 function getRainfallChoroplethColor(mm) {
@@ -503,15 +495,15 @@ function showDistrictSpotlight(p) {
   if (!card) return;
 
   document.getElementById("spotlight-district-name").innerText = p.district_name || p.name || "District";
-  document.getElementById("sp-corr").innerText = `${p.corrected_mean_mm ?? 0} mm`;
-  document.getElementById("sp-nwp").innerText = `${p.raw_nwp_mean_mm ?? 0} mm`;
-  document.getElementById("sp-obs").innerText = `${p.observed_mm ?? (p.corrected_mean_mm ? Math.round(p.corrected_mean_mm * 0.9) : 0)} mm`;
-  document.getElementById("sp-prob").innerText = `${((p.heavy_rain_probability || 0) * 100).toFixed(1)}%`;
+  document.getElementById("sp-corr").innerText = hasNumericValue(p.corrected_mean_mm) ? `${p.corrected_mean_mm} mm` : "Unavailable";
+  document.getElementById("sp-nwp").innerText = hasNumericValue(p.raw_nwp_mean_mm) ? `${p.raw_nwp_mean_mm} mm` : "Unavailable";
+  document.getElementById("sp-obs").innerText = hasNumericValue(p.observed_mm) ? `${p.observed_mm} mm` : "Unavailable";
+  document.getElementById("sp-prob").innerText = hasNumericValue(p.heavy_rain_probability) ? `${(p.heavy_rain_probability * 100).toFixed(1)}%` : "Unavailable";
   
   const riskElem = document.getElementById("sp-risk");
-  const rCode = (p.risk_code || "GREEN").toUpperCase();
-  riskElem.className = `badge badge-${rCode.toLowerCase()}`;
-  riskElem.innerText = rCode;
+  const rCode = p.risk_code ? String(p.risk_code).toUpperCase() : null;
+  riskElem.className = rCode ? `badge badge-${rCode.toLowerCase()}` : "badge";
+  riskElem.innerText = rCode || "Unavailable";
 
   card.classList.remove("hidden");
 }
@@ -575,6 +567,60 @@ function initRegimeDonutChart() {
   const tooltipBg = currentTheme === "light" ? "rgba(255, 255, 255, 0.96)" : "rgba(8, 16, 36, 0.95)";
   const tooltipText = currentTheme === "light" ? "#0f172a" : "#ffffff";
   const borderColor = currentTheme === "light" ? "#ffffff" : "#0a1224";
+  const regimeColors = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#06b6d4", "#8b5cf6"];
+  const regimeData = currentRegimeProbabilities
+    ? Object.entries(currentRegimeProbabilities).map(([name, probability], index) => ({
+      name: name.replace(/_/g, " "),
+      value: probability * 100,
+      itemStyle: { color: regimeColors[index % regimeColors.length] },
+    }))
+    : [];
+  const legend = document.getElementById("custom-regime-legend");
+  if (legend) {
+    if (!regimeData.length) {
+      legend.textContent = "Real regime probabilities unavailable";
+    } else {
+      legend.replaceChildren(...regimeData.map((regime) => {
+        const row = document.createElement("div");
+        row.className = "legend-row";
+        const dot = document.createElement("span");
+        dot.className = "legend-dot";
+        dot.style.background = regime.itemStyle.color;
+        const name = document.createElement("span");
+        name.className = "legend-name";
+        name.textContent = regime.name;
+        const percent = document.createElement("span");
+        percent.className = "legend-percent";
+        percent.textContent = `${regime.value.toFixed(1)}%`;
+        row.append(dot, name, percent);
+        return row;
+      }));
+    }
+  }
+  const regimeTableBody = document.getElementById("regime-probability-body");
+  if (regimeTableBody) {
+    regimeTableBody.replaceChildren();
+    if (!regimeData.length) {
+      const row = document.createElement("tr");
+      const cell = document.createElement("td");
+      cell.colSpan = 3;
+      cell.textContent = "Real regime probabilities unavailable.";
+      row.appendChild(cell);
+      regimeTableBody.appendChild(row);
+    } else {
+      for (const regime of regimeData) {
+        const row = document.createElement("tr");
+        const nameCell = document.createElement("td");
+        nameCell.textContent = regime.name;
+        const probabilityCell = document.createElement("td");
+        probabilityCell.textContent = `${regime.value.toFixed(1)}%`;
+        const availabilityCell = document.createElement("td");
+        availabilityCell.textContent = "Persisted model output";
+        row.append(nameCell, probabilityCell, availabilityCell);
+        regimeTableBody.appendChild(row);
+      }
+    }
+  }
 
   const option = {
     tooltip: {
@@ -595,17 +641,19 @@ function initRegimeDonutChart() {
         label: {
           show: true,
           position: "center",
-          formatter: () => "{bold|78%}\n{sub|Active}\n{sub|Monsoon}",
+          formatter: () => {
+            if (!regimeData.length) return "Unavailable";
+            const leadingRegime = regimeData.reduce(
+              (highest, current) => current.value > highest.value ? current : highest,
+            );
+            return `{bold|${Math.round(leadingRegime.value)}%}\n{sub|${leadingRegime.name}}`;
+          },
           rich: {
             bold: { color: centerTextColor, fontSize: 18, fontWeight: 800, fontFamily: "Plus Jakarta Sans", lineHeight: 22 },
             sub: { color: currentTheme === "light" ? "#0284c7" : "#38bdf8", fontSize: 11, fontWeight: 600, lineHeight: 14 },
           },
         },
-        data: OPERATIONAL_DATA.regimes.map((r) => ({
-          value: r.value,
-          name: r.name,
-          itemStyle: { color: r.color },
-        })),
+        data: regimeData,
       },
     ],
   };
@@ -620,10 +668,13 @@ function initForecastComparisonChart() {
   if (forecastComparisonChart) forecastComparisonChart.dispose();
   forecastComparisonChart = echarts.init(chartElem);
 
-  const districts = OPERATIONAL_DATA.comparisonDistricts.map((d) => d.name);
-  const nwpVals = OPERATIONAL_DATA.comparisonDistricts.map((d) => d.nwp);
-  const corrVals = OPERATIONAL_DATA.comparisonDistricts.map((d) => d.corrected);
-  const obsVals = OPERATIONAL_DATA.comparisonDistricts.map((d) => d.observed);
+  const forecastRows = allDistrictsForecast.filter((district) =>
+    Number.isFinite(Number(district.raw_nwp_mean_mm))
+    && Number.isFinite(Number(district.corrected_mean_mm))
+  );
+  const districts = forecastRows.map((district) => district.district_name);
+  const nwpVals = forecastRows.map((district) => district.raw_nwp_mean_mm);
+  const corrVals = forecastRows.map((district) => district.corrected_mean_mm);
 
   const tooltipBg = currentTheme === "light" ? "rgba(255, 255, 255, 0.96)" : "rgba(8, 16, 36, 0.95)";
   const tooltipText = currentTheme === "light" ? "#0f172a" : "#ffffff";
@@ -639,7 +690,7 @@ function initForecastComparisonChart() {
       textStyle: { color: tooltipText, fontFamily: "Plus Jakarta Sans", fontSize: 12 },
     },
     legend: {
-      data: ["Raw NWP Forecast", "VARUNA-AI Corrected", "Actual (Observed)"],
+      data: ["Raw NWP Forecast", "VARUNA-AI Corrected"],
       top: 0,
       textStyle: { color: axisColor, fontSize: 10.5, fontFamily: "Plus Jakarta Sans" },
       itemWidth: 10,
@@ -656,7 +707,6 @@ function initForecastComparisonChart() {
       type: "value",
       name: "Rainfall (mm)",
       nameTextStyle: { color: "#64748b", fontSize: 10 },
-      max: 110,
       axisLabel: { color: "#64748b", fontSize: 10, fontFamily: "JetBrains Mono" },
       splitLine: { lineStyle: { color: splitLineColor } },
     },
@@ -674,12 +724,6 @@ function initForecastComparisonChart() {
         data: corrVals,
         itemStyle: { color: currentTheme === "light" ? "#0284c7" : "#38bdf8", borderRadius: [3, 3, 0, 0] },
       },
-      {
-        name: "Actual (Observed)",
-        type: "bar",
-        data: obsVals,
-        itemStyle: { color: "#10b981", borderRadius: [3, 3, 0, 0] },
-      },
     ],
   };
 
@@ -695,42 +739,53 @@ function initSynopticRadarChart() {
   synopticRadarChart = echarts.init(elem);
 
   const axisColor = currentTheme === "light" ? "#475569" : "#94a3b8";
+  const radarFeatures = [
+    { key: "u850", label: "Somali Jet (u850)" },
+    { key: "u200", label: "Easterly Jet (u200)" },
+    { key: "tcwv", label: "Moisture (TCWV)" },
+    { key: "cape", label: "Instability (CAPE)" },
+    { key: "vorticity_proxy", label: "Vorticity Index" },
+    { key: "orographic_flux_idx", label: "Orographic Flux" },
+  ];
+  const radarValues = radarFeatures.map((feature) =>
+    currentSynopticFeatures?.[feature.key]
+  );
+  const hasRealRadarValues = radarValues.every((value) => Number.isFinite(Number(value)));
+  const radarMaximum = hasRealRadarValues
+    ? Math.max(...radarValues.map((value) => Math.abs(Number(value))))
+    : null;
 
   const option = {
     tooltip: { trigger: "item" },
     radar: {
-      indicator: [
-        { name: "Somali Jet (u850)", max: 25 },
-        { name: "Easterly Jet (u200)", max: 35 },
-        { name: "Moisture (TCWV)", max: 70 },
-        { name: "Instability (CAPE)", max: 3000 },
-        { name: "Vorticity Index", max: 5 },
-        { name: "Orographic Flux", max: 40 },
-      ],
+      indicator: radarFeatures.map((feature) => ({
+        name: feature.label,
+        max: radarMaximum || 1,
+      })),
       axisName: { color: axisColor, fontSize: 11, fontFamily: "Plus Jakarta Sans" },
       splitArea: { show: false },
       splitLine: { lineStyle: { color: "rgba(56, 189, 248, 0.15)" } },
     },
-    series: [
-      {
-        name: "Synoptic State",
+    series: hasRealRadarValues
+      ? [{
+        name: "Persisted Synoptic State",
         type: "radar",
-        data: [
-          {
-            value: [18.5, 28.4, 58.6, 2150, 3.8, 32.5],
-            name: "Current Operational State",
-            itemStyle: { color: "#38bdf8" },
-            areaStyle: { color: "rgba(56, 189, 248, 0.25)" },
-          },
-          {
-            value: [10.2, 14.5, 42.0, 950, 1.2, 12.0],
-            name: "Break Climatology Reference",
-            itemStyle: { color: "#f59e0b" },
-            lineStyle: { type: "dashed" },
-          },
-        ],
-      },
-    ],
+        data: [{
+          value: radarValues.map(Number),
+          name: "Persisted Synoptic State",
+          itemStyle: { color: "#38bdf8" },
+          areaStyle: { color: "rgba(56, 189, 248, 0.25)" },
+        }],
+      }]
+      : [],
+    graphic: hasRealRadarValues
+      ? []
+      : [{
+        type: "text",
+        left: "center",
+        top: "middle",
+        style: { text: "Synoptic data unavailable", fill: axisColor },
+      }],
   };
 
   synopticRadarChart.setOption(option);
@@ -756,11 +811,8 @@ function initVerificationCharts() {
         axisLabel: { color: axisColor, fontSize: 10 },
       },
       yAxis: { type: "value", name: "Critical Success Index (CSI)", max: 1.0, axisLabel: { color: axisColor }, splitLine: { lineStyle: { color: splitLineColor } } },
-      series: [
-        { name: "Raw NWP", type: "line", data: [0.72, 0.64, 0.59, 0.575, 0.38, 0.18], itemStyle: { color: "#ef4444" }, lineStyle: { type: "dashed" } },
-        { name: "Level 2: Standard ML", type: "line", data: [0.82, 0.74, 0.69, 0.642, 0.48, 0.28], itemStyle: { color: "#f59e0b" } },
-        { name: "Level 3: VARUNA-AI (Regime-Aware)", type: "line", data: [0.88, 0.82, 0.76, 0.694, 0.59, 0.42], itemStyle: { color: "#38bdf8" }, areaStyle: { color: "rgba(56, 189, 248, 0.18)" } },
-      ],
+      series: [],
+      graphic: [{ type: "text", left: "center", top: "middle", style: { text: "Real categorical metrics unavailable", fill: axisColor } }],
     });
   }
 
@@ -773,15 +825,42 @@ function initVerificationCharts() {
       grid: { top: 35, left: "4%", right: "4%", bottom: "8%", containLabel: true },
       xAxis: {
         type: "category",
-        data: ["Level 0: Raw NWP", "Level 1: EQM Mapping", "Level 2: Standard ML", "Level 3: VARUNA-AI"],
+        data: [],
         axisLabel: { color: axisColor, fontSize: 11 },
       },
       yAxis: { type: "value", axisLabel: { color: axisColor, formatter: "{value} mm" }, splitLine: { lineStyle: { color: splitLineColor } } },
       series: [
-        { name: "MAE (mm)", type: "bar", data: [8.76, 5.71, 5.32, 5.22], itemStyle: { color: "#3b82f6", borderRadius: [3, 3, 0, 0] } },
-        { name: "RMSE (mm)", type: "bar", data: [16.89, 8.96, 10.53, 10.22], itemStyle: { color: "#f59e0b", borderRadius: [3, 3, 0, 0] } },
+        { name: "MAE (mm)", type: "bar", data: [], itemStyle: { color: "#3b82f6", borderRadius: [3, 3, 0, 0] } },
+        { name: "RMSE (mm)", type: "bar", data: [], itemStyle: { color: "#f59e0b", borderRadius: [3, 3, 0, 0] } },
       ],
+      graphic: [{ type: "text", left: "center", top: "middle", style: { text: "Real verification unavailable", fill: axisColor } }],
     });
+
+    fetch("/api/v1/verification/")
+      .then((response) => {
+        if (!response.ok) throw new Error("Real verification is unavailable.");
+        return response.json();
+      })
+      .then((verification) => {
+        const levels = verification.levels || {};
+        const evaluated = [
+          ["level0_raw_era5", "Level 0: Raw ERA5"],
+          ["level1_empirical_quantile_mapping", "Level 1: Empirical Quantile Mapping"],
+          ["level2_standard_ml", "Level 2: Standard ML"],
+          ["level3_regime_aware_ml", "Level 3: Regime-Aware ML"],
+        ].filter(([key]) => levels[key]?.status === "evaluated");
+        ladderComparisonChart.setOption({
+          xAxis: { data: evaluated.map(([, label]) => label) },
+          series: [
+            { name: "MAE (mm)", data: evaluated.map(([key]) => levels[key].test.MAE) },
+            { name: "RMSE (mm)", data: evaluated.map(([key]) => levels[key].test.RMSE) },
+          ],
+          graphic: evaluated.length
+            ? []
+            : [{ type: "text", left: "center", top: "middle", style: { text: "Real verification unavailable", fill: axisColor } }],
+        });
+      })
+      .catch(() => {});
   }
 }
 
@@ -793,11 +872,6 @@ function initHistoricalTimeseriesChart() {
   if (historicalTimeseriesChart) historicalTimeseriesChart.dispose();
   historicalTimeseriesChart = echarts.init(elem);
 
-  const days = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
-  const rawNwp = [12, 18, 25, 45, 30, 22, 15, 60, 85, 40, 20, 15, 28, 55, 90, 110, 65, 45, 30, 20, 18, 35, 75, 95, 60, 40, 25, 18, 30, 50];
-  const varunaAi = [16, 22, 32, 58, 40, 28, 18, 78, 112, 52, 26, 19, 36, 72, 118, 142, 85, 58, 38, 25, 22, 45, 98, 122, 78, 52, 32, 24, 38, 64];
-  const observed = [15, 24, 30, 62, 38, 26, 20, 82, 118, 50, 28, 18, 34, 75, 124, 138, 88, 55, 36, 24, 20, 48, 102, 128, 74, 50, 30, 22, 36, 68];
-
   const axisColor = currentTheme === "light" ? "#475569" : "#94a3b8";
   const splitLineColor = currentTheme === "light" ? "rgba(0, 0, 0, 0.06)" : "rgba(255, 255, 255, 0.05)";
 
@@ -805,13 +879,14 @@ function initHistoricalTimeseriesChart() {
     tooltip: { trigger: "axis" },
     legend: { data: ["Raw NWP (mm)", "VARUNA-AI Corrected (mm)", "IMD Observed (mm)"], textStyle: { color: axisColor } },
     grid: { top: 35, left: "4%", right: "4%", bottom: "8%", containLabel: true },
-    xAxis: { type: "category", data: days, axisLabel: { color: axisColor } },
+    xAxis: { type: "category", data: [], axisLabel: { color: axisColor } },
     yAxis: { type: "value", name: "Precipitation (mm/day)", axisLabel: { color: axisColor }, splitLine: { lineStyle: { color: splitLineColor } } },
     series: [
-      { name: "Raw NWP (mm)", type: "line", data: rawNwp, itemStyle: { color: "#ef4444" }, lineStyle: { type: "dashed" } },
-      { name: "VARUNA-AI Corrected (mm)", type: "line", data: varunaAi, itemStyle: { color: "#38bdf8" }, lineStyle: { width: 2.5 } },
-      { name: "IMD Observed (mm)", type: "line", data: observed, itemStyle: { color: "#10b981" } },
+      { name: "Raw NWP (mm)", type: "line", data: [] },
+      { name: "Corrected (mm)", type: "line", data: [] },
+      { name: "Observed (mm)", type: "line", data: [] },
     ],
+    graphic: [{ type: "text", left: "center", top: "middle", style: { text: "No persisted historical time series is available", fill: axisColor } }],
   });
 }
 
@@ -850,7 +925,8 @@ function loadLatestOperationalForecast(dateVal, cycleVal) {
       updateForecastSelectorDisplay(data, dateParam, cycleParam);
     })
     .catch((err) => {
-      console.warn("Using local operational cache for UI hydration:", err);
+      console.warn("No persisted forecast is available:", err);
+      showForecastUnavailableState();
       fetchDistrictsGeojson();
     });
 }
@@ -910,9 +986,6 @@ function fetchDistrictsGeojson() {
     .then((data) => {
       if (data.geojson) {
         updateGeojsonMap(data.geojson);
-        allDistrictsForecast = data.geojson.features.map((f) => f.properties);
-        populateDistrictViewTable(allDistrictsForecast);
-        renderAlertsFeed(allDistrictsForecast);
       }
     })
     .catch((err) => console.error("Error fetching districts GeoJSON:", err));
@@ -931,31 +1004,81 @@ function hydrateDashboard(data) {
     allDistrictsForecast = data.districts_forecast;
     populateDistrictViewTable(allDistrictsForecast);
     renderAlertsFeed(allDistrictsForecast);
+    initForecastComparisonChart();
+    updateForecastSummary(allDistrictsForecast);
   }
 
   // Hydrate Run Meta
   const run = data.forecast_run || {};
+  currentRegimeProbabilities = run.regime_probabilities || null;
+  currentSynopticFeatures = run.synoptic_features || null;
+  initRegimeDonutChart();
+  initSynopticRadarChart();
+  const synopticUnits = {
+    "syn-mslp": ["mslp", "hPa"],
+    "syn-u850": ["u850", "m/s"],
+    "syn-u200": ["u200", "m/s"],
+    "syn-shear": ["vertical_wind_shear", "m/s"],
+    "syn-tcwv": ["tcwv", "kg/m²"],
+    "syn-cape": ["cape", "J/kg"],
+  };
+  for (const [elementId, [featureName, unit]] of Object.entries(synopticUnits)) {
+    const featureValue = currentSynopticFeatures?.[featureName];
+    setText(
+      elementId,
+      hasNumericValue(featureValue) ? `${featureValue} ${unit}` : "Unavailable",
+    );
+  }
   if (run.detected_regime) {
     const regNameElem = document.getElementById("kpi-regime-name");
 
     if (regNameElem) regNameElem.innerText = run.detected_regime.replace(/_/g, " ");
   }
-  if (run.regime_confidence) {
+  if (run.regime_confidence !== undefined && run.regime_confidence !== null) {
     const confElem = document.getElementById("kpi-regime-conf");
     if (confElem) confElem.innerText = `Confidence ${Math.round(run.regime_confidence * 100)}%`;
   }
+}
 
-  // Hydrate Donut Chart
-  if (run.regime_probabilities && regimeDonutChart) {
-    const probs = run.regime_probabilities;
-    const seriesData = Object.keys(probs).map((k) => ({
-      name: k.replace(/_/g, " "),
-      value: Math.round(probs[k] * 100),
-    }));
-    if (seriesData.length > 0) {
-      regimeDonutChart.setOption({ series: [{ data: seriesData }] });
-    }
-  }
+function updateForecastSummary(forecasts) {
+  const populated = forecasts.filter((forecast) =>
+    hasNumericValue(forecast.corrected_mean_mm)
+  );
+  const meanCorrectedRainfall = populated.length
+    ? populated.reduce((sum, forecast) => sum + Number(forecast.corrected_mean_mm), 0) / populated.length
+    : null;
+  const probabilityRows = populated.filter((forecast) =>
+    hasNumericValue(forecast.heavy_rain_probability)
+  );
+  const meanHeavyProbability = probabilityRows.length
+    ? probabilityRows.reduce((sum, forecast) => sum + Number(forecast.heavy_rain_probability), 0) / probabilityRows.length
+    : null;
+
+  setText(
+    "kpi-rainfall-avg",
+    meanCorrectedRainfall === null ? "Unavailable" : `${meanCorrectedRainfall.toFixed(1)} mm`,
+  );
+  setText(
+    "kpi-heavy-prob",
+    meanHeavyProbability === null ? "Unavailable" : `${(meanHeavyProbability * 100).toFixed(1)}%`,
+  );
+  setText("kpi-coverage-count", populated.length ? String(populated.length) : "Unavailable");
+  setText("kpi-rmse-gain", "Unavailable");
+}
+
+function showForecastUnavailableState() {
+  currentRegimeProbabilities = null;
+  currentSynopticFeatures = null;
+  allDistrictsForecast = [];
+  setText("kpi-regime-name", "Unavailable");
+  setText("kpi-regime-conf", "Confidence unavailable");
+  setText("kpi-rainfall-avg", "Unavailable");
+  setText("kpi-heavy-prob", "Unavailable");
+  setText("kpi-rmse-gain", "Unavailable");
+  setText("kpi-coverage-count", "Unavailable");
+  initRegimeDonutChart();
+  initSynopticRadarChart();
+  initForecastComparisonChart();
 }
 
 // ==========================================================================
@@ -1014,31 +1137,20 @@ function renderAlertsFeed(districts) {
   let yellowCount = 0;
   let greenCount = 0;
 
-  // Filter and sort by severity
-  const sorted = [...districts].sort((a, b) => (b.corrected_mean_mm || 0) - (a.corrected_mean_mm || 0));
+  const sorted = districts
+    .filter((district) => district.risk_code)
+    .sort((left, right) => Number(right.corrected_mean_mm) - Number(left.corrected_mean_mm));
 
   sorted.forEach((d) => {
-    const corr = d.corrected_mean_mm || 0;
-    const prob = d.heavy_rain_probability || 0;
-    let rCode = "GREEN";
-    let actionGuide = "Normal seasonal monitoring; standard agricultural water management.";
+    const rCode = String(d.risk_code).toUpperCase();
+    const corr = d.corrected_mean_mm;
+    const prob = d.heavy_rain_probability;
+    const actionGuide = d.risk_label || "Persisted forecast risk classification.";
 
-    // Match the backend risk gates: corrected rainfall is the primary trigger.
-    if (corr >= 204.5 || (prob >= 0.35 && corr >= 64.5)) {
-      rCode = "RED";
-      redCount++;
-      actionGuide = "IMMEDIATE EVACUATION & FLOOD PREPAREDNESS. NDRF & SDMA standby activated.";
-    } else if (corr >= 115.6 || (prob >= 0.30 && corr >= 64.5) || (prob >= 0.55 && corr >= 35.5)) {
-      rCode = "ORANGE";
-      orangeCount++;
-      actionGuide = "BE PREPARED. Heavy rainfall warning; restrict movement in low-lying riparian areas.";
-    } else if (corr >= 64.5 || (prob >= 0.25 && corr >= 15.6) || (prob >= 0.60 && corr >= 15.6)) {
-      rCode = "YELLOW";
-      yellowCount++;
-      actionGuide = "BE AWARE. Moderate rainfall; check local drainage channels and agricultural bunds.";
-    } else {
-      greenCount++;
-    }
+    if (rCode === "RED") redCount++;
+    else if (rCode === "ORANGE") orangeCount++;
+    else if (rCode === "YELLOW") yellowCount++;
+    else if (rCode === "GREEN") greenCount++;
 
     if (rCode !== "GREEN") {
       const card = document.createElement("div");
@@ -1047,22 +1159,22 @@ function renderAlertsFeed(districts) {
         <div class="alert-left-meta">
           <span class="alert-badge-large ${rCode.toLowerCase()}">${rCode} ALERT</span>
           <div>
-            <div class="alert-district-name">${d.district_name || d.name} (${d.state || "Karnataka"})</div>
+            <div class="alert-district-name">${d.district_name || d.name || "District"}${d.state ? ` (${d.state})` : ""}</div>
             <div class="alert-action-guide">${actionGuide}</div>
           </div>
         </div>
         <div class="alert-right-data">
           <div class="alert-metric-col">
             <span class="alert-metric-lbl">AI Corrected Rain</span>
-            <span class="alert-metric-val" style="color: var(--neon-cyan);">${corr.toFixed(1)} mm</span>
+            <span class="alert-metric-val" style="color: var(--neon-cyan);">${hasNumericValue(corr) ? `${Number(corr).toFixed(1)} mm` : "Unavailable"}</span>
           </div>
           <div class="alert-metric-col">
             <span class="alert-metric-lbl">P(Rain &ge; 64.5mm)</span>
-            <span class="alert-metric-val" style="color: ${rCode === 'RED' ? '#ef4444' : '#f59e0b'};">${(prob * 100).toFixed(0)}%</span>
+            <span class="alert-metric-val" style="color: ${rCode === 'RED' ? '#ef4444' : '#f59e0b'};">${hasNumericValue(prob) ? `${(Number(prob) * 100).toFixed(0)}%` : "Unavailable"}</span>
           </div>
           <div class="alert-metric-col">
             <span class="alert-metric-lbl">80% Uncertainty</span>
-            <span class="alert-metric-val" style="color: var(--text-muted);">[${d.uncertainty_lower_10pct || Math.round(corr * 0.75)} - ${d.uncertainty_upper_90pct || Math.round(corr * 1.35)}] mm</span>
+            <span class="alert-metric-val" style="color: var(--text-muted);">${hasNumericValue(d.uncertainty_lower_10pct) && hasNumericValue(d.uncertainty_upper_90pct) ? `[${d.uncertainty_lower_10pct} - ${d.uncertainty_upper_90pct}] mm` : "Unavailable"}</span>
           </div>
         </div>
       `;
@@ -1245,19 +1357,42 @@ function runPrediction() {
   const btn = document.getElementById("btn-run-prediction");
   const statusEl = document.getElementById("pred-status");
 
-  // Gather inputs
-  const payload = {
-    district_name: document.getElementById("pred-district")?.value || "Bengaluru Urban",
-    nwp_rainfall: parseFloat(document.getElementById("pred-nwp")?.value) || 45.0,
-    latitude: parseFloat(document.getElementById("pred-lat")?.value) || 12.97,
-    longitude: parseFloat(document.getElementById("pred-lon")?.value) || 77.59,
-    mslp: parseFloat(document.getElementById("pred-mslp")?.value) || 1002.4,
-    tcwv: parseFloat(document.getElementById("pred-tcwv")?.value) || 58.6,
-    u850: parseFloat(document.getElementById("pred-u850")?.value) || 18.5,
-    rh700: parseFloat(document.getElementById("pred-rh700")?.value) || 82.0,
-    cape: parseFloat(document.getElementById("pred-cape")?.value) || 2150.0,
-    vertical_wind_shear: parseFloat(document.getElementById("pred-shear")?.value) || 46.2,
-  };
+  const inputFields = [
+    ["nwp_rainfall", "pred-nwp"],
+    ["latitude", "pred-lat"],
+    ["longitude", "pred-lon"],
+    ["mslp", "pred-mslp"],
+    ["u850", "pred-u850"],
+    ["v850", "pred-v850"],
+    ["u200", "pred-u200"],
+    ["v200", "pred-v200"],
+    ["tcwv", "pred-tcwv"],
+    ["rh700", "pred-rh700"],
+    ["cape", "pred-cape"],
+    ["monsoon_trough_lat", "pred-trough"],
+    ["vertical_wind_shear", "pred-shear"],
+  ];
+  const payload = {};
+  const invalidFields = [];
+  for (const [fieldName, inputId] of inputFields) {
+    const inputValue = document.getElementById(inputId)?.value?.trim();
+    const numericValue = Number(inputValue);
+    if (inputValue === undefined || inputValue === "" || !Number.isFinite(numericValue)) {
+      invalidFields.push(fieldName);
+      continue;
+    }
+    payload[fieldName] = numericValue;
+  }
+  const districtName = document.getElementById("pred-district")?.value?.trim();
+  if (districtName) payload.district_name = districtName;
+
+  if (invalidFields.length) {
+    if (statusEl) {
+      statusEl.style.color = "#ef4444";
+      statusEl.textContent = `Enter valid values for: ${invalidFields.join(", ")}`;
+    }
+    return;
+  }
 
   if (btn) {
     btn.disabled = true;
@@ -1274,8 +1409,8 @@ function runPrediction() {
       if (d.status === "ERROR") throw new Error(d.message);
 
       const riskColors = { RED: "#ef4444", ORANGE: "#f97316", YELLOW: "#eab308", GREEN: "#10b981" };
-      const risk = d.risk_assessment?.risk_code || "GREEN";
-      const riskColor = riskColors[risk] || "#10b981";
+      const risk = d.risk_assessment.risk_code;
+      const riskColor = riskColors[risk];
 
       const fmt = (v) => (v != null ? `${v.toFixed(1)} mm` : "—");
       const fmtDelta = (v) => (v != null ? `${v > 0 ? "+" : ""}${v.toFixed(1)} mm` : "—");
@@ -1288,9 +1423,9 @@ function runPrediction() {
         riskEl.textContent = `🚨 ${risk} ALERT`;
         riskEl.style.color = riskColor;
       }
-      setText("pred-out-action", d.risk_assessment?.action_advisory || "—");
+      setText("pred-out-action", d.risk_assessment.action_advisory);
 
-      const lad = d.model_ladder || {};
+      const lad = d.model_ladder;
       setText("pred-l0", fmt(lad.level0_raw_nwp_mm));
       setText("pred-l1", fmt(lad.level1_quantile_mapping_mm));
       setText("pred-l2", fmt(lad.level2_standard_ml_mm));
@@ -1347,10 +1482,10 @@ function runPrediction() {
             type: "bar",
             barWidth: "45%",
             data: [
-              { value: lad.level0_raw_nwp_mm || 0, itemStyle: { color: "#f87171", borderRadius: [5, 5, 0, 0] } },
-              { value: lad.level1_quantile_mapping_mm || 0, itemStyle: { color: "#38bdf8", borderRadius: [5, 5, 0, 0] } },
-              { value: lad.level2_standard_ml_mm || 0, itemStyle: { color: "#a855f7", borderRadius: [5, 5, 0, 0] } },
-              { value: lad.level3_regime_aware_ml_mm || 0, itemStyle: { color: "#34d399", borderRadius: [5, 5, 0, 0] } },
+              { value: lad.level0_raw_nwp_mm, itemStyle: { color: "#f87171", borderRadius: [5, 5, 0, 0] } },
+              { value: lad.level1_quantile_mapping_mm, itemStyle: { color: "#38bdf8", borderRadius: [5, 5, 0, 0] } },
+              { value: lad.level2_standard_ml_mm, itemStyle: { color: "#a855f7", borderRadius: [5, 5, 0, 0] } },
+              { value: lad.level3_regime_aware_ml_mm, itemStyle: { color: "#34d399", borderRadius: [5, 5, 0, 0] } },
             ],
             label: {
               show: true,

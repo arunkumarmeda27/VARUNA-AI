@@ -1,0 +1,12 @@
+VARUNA-AI M1 CI ORCHESTRATION CHECK
+====================================
+
+Status: PASSED
+Mode: GitHub Actions CI validation
+
+The M1 source scripts were verified successfully.
+This CI mode does not execute data-dependent ingestion, training, or evaluation.
+Real-data inputs are present, but CI source-check mode did not run training or evaluation.
+
+Local real-data execution remains available through:
+python weather_data/run_m1_pipeline.py

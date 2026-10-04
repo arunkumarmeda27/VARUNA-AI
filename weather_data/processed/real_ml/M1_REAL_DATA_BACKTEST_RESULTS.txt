@@ -1,0 +1,44 @@
+VARUNA-AI M1 REAL-DATA BACKTEST
+============================================================
+
+Dataset:
+C:\Users\rajat\VARUNA-AI\weather_data\processed\real_ml\master_real_weather_2021_2025.parquet
+
+Rows evaluated: 8723845
+Start: 2021-01-08 00:00:00
+End: 2025-12-31 00:00:00
+
+CONTINUOUS METRICS
+------------------------------------------------------------
+MAE: 3.252
+RMSE: 11.109
+Mean_Bias: -2.289
+Correlation: 0.363
+
+CATEGORICAL METRICS
+------------------------------------------------------------
+Threshold 1.0 mm
+POD: 0.6628
+CSI: 0.4642
+FAR: 0.3923
+Frequency Bias: 1.0907
+
+Threshold 2.5 mm
+POD: 0.4622
+CSI: 0.3455
+FAR: 0.4223
+Frequency Bias: 0.8001
+
+Threshold 10.0 mm
+POD: 0.061
+CSI: 0.057
+FAR: 0.5372
+Frequency Bias: 0.1318
+
+YEAR-WISE RESULTS
+------------------------------------------------------------
+2021 | MAE=3.334 | RMSE=11.1 | Bias=-2.402 | Correlation=0.341
+2022 | MAE=3.336 | RMSE=11.558 | Bias=-2.423 | Correlation=0.375
+2023 | MAE=2.917 | RMSE=10.37 | Bias=-1.998 | Correlation=0.374
+2024 | MAE=3.283 | RMSE=11.418 | Bias=-2.254 | Correlation=0.367
+2025 | MAE=3.391 | RMSE=11.058 | Bias=-2.37 | Correlation=0.356

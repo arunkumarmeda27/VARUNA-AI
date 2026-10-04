@@ -1,30 +1,29 @@
 """
-VARUNA-AI: Level 3 Regime-Aware ML Correction Model (Model B) — v3.0.0
+VARUNA-AI: Level 3 Regime-Aware ML Correction Model
 Owner: Member 3 (Rainfall Post-Processing ML Engineer)
 
-Regime-Aware GBDT/XGBoost Regressor with proven effective architecture:
-- Single high-capacity XGBoost with FULL regime-aware feature set
-  (synoptic dynamics + ALL regime probabilities + interaction terms)
-- Log1p target transformation for improved heavy-rain calibration
-- Monotone constraint on nwp_rainfall (non-decreasing correction w.r.t. NWP input)
-- Tweedie deviance objective for right-skewed rainfall distribution
-- Early stopping on MAE
-- Physics-anchored output: predictions >= 0.0
+Level 3 regime-aware rainfall post-processing model.
+
+This implementation requires the complete real-data feature set.
+Missing features are rejected explicitly instead of being replaced
+with artificial zero values.
 """
 
-import os
-import logging
+import joblib
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from typing import List, Dict
+from typing import List
 
 from correction.models.level2_standard_ml import STANDARD_FEATURE_COLS
 from weather_data.metadata.data_dictionary import WEATHER_REGIMES
 
-logger = logging.getLogger(__name__)
 
-REGIME_PROB_COLS: List[str] = [f"prob_{r.lower()}" for r in WEATHER_REGIMES]
+REGIME_PROB_COLS: List[str] = [
+    f"prob_{r.lower()}"
+    for r in WEATHER_REGIMES
+]
+
 REGIME_INTERACTION_COLS: List[str] = [
     "monsoon_trough_lat",
     "vorticity_proxy",
@@ -34,25 +33,30 @@ REGIME_INTERACTION_COLS: List[str] = [
     "convective_index",
 ]
 
-# Deduplicated full feature set for Level 3
+
 _seen = set()
 _full_cols: List[str] = []
-for _c in (STANDARD_FEATURE_COLS + REGIME_PROB_COLS + REGIME_INTERACTION_COLS):
-    if _c not in _seen:
-        _seen.add(_c)
-        _full_cols.append(_c)
+
+for col in (
+    STANDARD_FEATURE_COLS
+    + REGIME_PROB_COLS
+    + REGIME_INTERACTION_COLS
+):
+    if col not in _seen:
+        _seen.add(col)
+        _full_cols.append(col)
+
 REGIME_AWARE_FEATURE_COLS: List[str] = _full_cols
 
 
 class Level3RegimeAwareML:
     """
-    Level 3: Regime-Aware Machine Learning Post-Processing Regressor (Model B) — v3.0.0.
+    Level 3: Regime-Aware Machine Learning rainfall correction model.
 
-    Single XGBoost with regime probabilities as explicit features (proven pattern):
-    - Regime probs allow the model to learn regime-conditional correction implicitly.
-    - Log1p target reduces the influence of extreme outlier events during training.
-    - Monotone constraint on NWP rainfall ensures physically consistent predictions.
-    - Tweedie deviance handles the heavy right tail of monsoon rainfall well.
+    Uses real meteorological and regime features.
+
+    Missing required features are rejected explicitly.
+    No synthetic zero-filling is performed.
     """
 
     def __init__(
@@ -63,13 +67,11 @@ class Level3RegimeAwareML:
         early_stopping_rounds: int = 40,
     ):
         self.model_name = "Level3_Regime_Aware_ML_XGB"
-        self.model_version = "v3.0.0"
+        self.model_version = "v4.0.0"
+
         self.feature_cols = REGIME_AWARE_FEATURE_COLS
         self.early_stopping_rounds = early_stopping_rounds
         self._trained = False
-
-        # No monotone constraint: regime probabilities guide direction implicitly
-        # (e.g., high p_break_monsoon → reduce rainfall prediction, even if NWP is high)
 
         self.model = xgb.XGBRegressor(
             n_estimators=n_estimators,
@@ -88,41 +90,160 @@ class Level3RegimeAwareML:
             early_stopping_rounds=early_stopping_rounds,
         )
 
-    def _prepare(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Return a copy with all required feature columns (0-filled if absent)."""
-        df_in = df.copy()
-        for col in self.feature_cols:
-            if col not in df_in.columns:
-                df_in[col] = 0.0
-        return df_in
+    def _validate_features(
+        self,
+        df: pd.DataFrame,
+        dataset_name: str,
+        require_target: bool = True,
+    ) -> None:
+        """
+        Validate that every required real feature exists.
 
-    def fit(self, train_df: pd.DataFrame, val_df: pd.DataFrame) -> "Level3RegimeAwareML":
-        train_in = self._prepare(train_df)
-        val_in = self._prepare(val_df)
+        Missing features are NOT replaced with zero.
+        """
 
-        X_train = train_in[self.feature_cols]
-        y_train_log = np.log1p(train_in["observed_rainfall"].values)
+        missing_features = [
+            col
+            for col in self.feature_cols
+            if col not in df.columns
+        ]
 
-        X_val = val_in[self.feature_cols]
-        y_val_log = np.log1p(val_in["observed_rainfall"].values)
+        if missing_features:
+            raise ValueError(
+                f"{dataset_name} is missing required Level 3 "
+                f"features: {missing_features}"
+            )
+
+        if require_target and "observed_rainfall" not in df.columns:
+            raise ValueError(
+                f"{dataset_name} is missing required target "
+                "'observed_rainfall'."
+            )
+
+        feature_values = df[
+            self.feature_cols
+        ].to_numpy(dtype=np.float64)
+
+        if not np.isfinite(feature_values).all():
+            raise ValueError(
+                f"{dataset_name} contains NaN or infinite values "
+                "in Level 3 features."
+            )
+
+        if require_target:
+            target_values = df[
+                "observed_rainfall"
+            ].to_numpy(dtype=np.float64)
+
+            if not np.isfinite(target_values).all():
+                raise ValueError(
+                    f"{dataset_name} contains NaN or infinite "
+                    "values in observed_rainfall."
+                )
+
+            if (target_values < 0).any():
+                raise ValueError(
+                    f"{dataset_name} contains negative "
+                    "observed rainfall values."
+                )
+
+    def fit(
+        self,
+        train_df: pd.DataFrame,
+        val_df: pd.DataFrame,
+    ) -> "Level3RegimeAwareML":
+        """
+        Train Level 3 using real training and validation data.
+        """
+
+        self._validate_features(
+            train_df,
+            "Training dataset",
+            require_target=True,
+        )
+
+        self._validate_features(
+            val_df,
+            "Validation dataset",
+            require_target=True,
+        )
+
+        X_train = train_df[
+            self.feature_cols
+        ]
+
+        X_val = val_df[
+            self.feature_cols
+        ]
+
+        y_train_log = np.log1p(
+            train_df[
+                "observed_rainfall"
+            ].to_numpy(dtype=np.float64)
+        )
+
+        y_val_log = np.log1p(
+            val_df[
+                "observed_rainfall"
+            ].to_numpy(dtype=np.float64)
+        )
 
         self.model.fit(
             X_train,
             y_train_log,
-            eval_set=[(X_val, y_val_log)],
+            eval_set=[
+                (X_val, y_val_log)
+            ],
             verbose=False,
         )
+
         self._trained = True
+
         return self
 
-    def predict(self, df: pd.DataFrame) -> np.ndarray:
+    def predict(
+        self,
+        df: pd.DataFrame,
+    ) -> np.ndarray:
         """
-        Predict corrected rainfall:
-        1. Model predicts log1p(rainfall) — inverse-transform via expm1.
-        2. Clamp to non-negative (physics).
+        Generate corrected rainfall predictions.
+
+        Missing features cause an explicit error.
         """
-        df_in = self._prepare(df)
-        X = df_in[self.feature_cols]
+
+        self._validate_features(
+            df,
+            "Prediction dataset",
+            require_target=False,
+        )
+
+        X = df[
+            self.feature_cols
+        ]
+
         log_preds = self.model.predict(X)
+
         preds = np.expm1(log_preds)
-        return np.maximum(preds, 0.0)
+
+        return np.maximum(
+            preds,
+            0.0,
+        )
+
+    def save(
+        self,
+        path: str,
+    ) -> None:
+        """Save trained model."""
+        joblib.dump(
+            self,
+            path,
+        )
+
+    @classmethod
+    def load(
+        cls,
+        path: str,
+    ) -> "Level3RegimeAwareML":
+        """Load trained model."""
+        return joblib.load(path)

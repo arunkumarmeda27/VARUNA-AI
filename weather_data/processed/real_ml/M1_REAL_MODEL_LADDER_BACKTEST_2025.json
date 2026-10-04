@@ -1,0 +1,67 @@
+{
+  "dataset": "master_real_weather_2021_2025.parquet",
+  "dataset_sha256": "be2d01c1cfb379edb05d31e0a6142cac949b076090381e2a14361c2900221213",
+  "target": "imd_rainfall",
+  "raw_forecast": "era5_rainfall",
+  "split": {
+    "training_period": [
+      "2021-01-08T00:00:00",
+      "2023-12-31T00:00:00"
+    ],
+    "validation_period": [
+      "2024-01-01T00:00:00",
+      "2024-12-31T00:00:00"
+    ],
+    "test_period": [
+      "2025-01-01T00:00:00",
+      "2025-12-31T00:00:00"
+    ],
+    "rows": {
+      "training": 5217969,
+      "validation": 1755336,
+      "test": 1750540
+    }
+  },
+  "levels": {
+    "level0_raw_era5": {
+      "status": "evaluated",
+      "validation": {
+        "MAE": 3.283,
+        "RMSE": 11.418,
+        "Mean_Bias": -2.254,
+        "Correlation": 0.367
+      },
+      "test": {
+        "MAE": 3.391,
+        "RMSE": 11.058,
+        "Mean_Bias": -2.37,
+        "Correlation": 0.356
+      }
+    },
+    "level1_empirical_quantile_mapping": {
+      "status": "evaluated",
+      "training_source": "real IMD rainfall paired with real ERA5 rainfall",
+      "validation": {
+        "MAE": 4.705,
+        "RMSE": 14.925,
+        "Mean_Bias": 0.404,
+        "Correlation": 0.303
+      },
+      "test": {
+        "MAE": 4.783,
+        "RMSE": 14.159,
+        "Mean_Bias": 0.276,
+        "Correlation": 0.284
+      },
+      "artifact": "real_data_level1_eqm.joblib"
+    },
+    "level2_standard_ml": {
+      "status": "unavailable",
+      "reason": "The real processed dataset lacks the required NWP and pressure-level/synoptic feature set; existing Level 2 artifact training provenance is not tied to this real dataset."
+    },
+    "level3_regime_aware_ml": {
+      "status": "unavailable",
+      "reason": "The real processed dataset lacks the required pressure-level features and observed regime labels/probabilities; existing Level 3 artifact training provenance is not tied to this real dataset."
+    }
+  }
+}

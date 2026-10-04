@@ -1,0 +1,143 @@
+name: VARUNA-AI M1 Data Pipeline
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+jobs:
+  m1-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install M1 dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy xarray netCDF4 pyarrow scikit-learn scipy joblib xgboost cdsapi
+
+      - name: Run real M1 pipeline when external inputs are available
+        id: real_m1
+        run: |
+          required_files=(
+            weather_data/raw/imd_rainfall/RF25_ind2021_rfp25.nc
+            weather_data/raw/imd_rainfall/RF25_ind2022_rfp25.nc
+            weather_data/raw/imd_rainfall/RF25_ind2023_rfp25.nc
+            weather_data/raw/imd_rainfall/RF25_ind2024_rfp25.nc
+            weather_data/raw/imd_rainfall/RF25_ind2025_rfp25.nc
+            weather_data/raw/era5/ERA5_daily_tp_2021_2025_aligned.nc
+            weather_data/processed/era5/ERA5_weather_daily_2021_2025.nc
+          )
+          missing_files=()
+          for file in "${required_files[@]}"; do
+            if [ ! -s "$file" ]; then
+              missing_files+=("$file")
+            fi
+          done
+
+          if [ "${#missing_files[@]}" -eq 0 ]; then
+            echo "real_data_available=true" >> "$GITHUB_OUTPUT"
+            python weather_data/run_m1_pipeline.py
+          else
+            echo "real_data_available=false" >> "$GITHUB_OUTPUT"
+            echo "Real-data M1 training/evaluation skipped; required external inputs are absent:"
+            printf ' - %s\n' "${missing_files[@]}"
+            echo "Running source-presence validation only; no model training or metrics are claimed."
+            python weather_data/run_m1_pipeline.py --ci
+          fi
+
+      - name: Verify M1 handoff
+        if: steps.real_m1.outputs.real_data_available == 'true'
+        run: |
+          python weather_data/create_m1_handoff.py
+          test -f weather_data/processed/real_ml/M1_DATA_HANDOFF.md
+
+      - name: Verify M1 reports
+        if: steps.real_m1.outputs.real_data_available == 'true'
+        run: |
+          test -f weather_data/processed/real_ml/M1_CI_ORCHESTRATION_REPORT.txt
+          test -f weather_data/processed/real_ml/M1_REAL_DATA_BACKTEST_RESULTS.txt
+          test -f weather_data/processed/real_ml/M1_TASK_1_2_REPORT.md
+          test -f weather_data/processed/real_ml/VARUNA_AI_ML_DATASET_METADATA.txt
+
+      - name: Verify outputs from a real-data run
+        if: steps.real_m1.outputs.real_data_available == 'true'
+        run: |
+          test -s weather_data/processed/real_ml/M1_REAL_MODEL_LADDER_BACKTEST_2025.json
+          test -s weather_data/processed/real_ml/M1_REAL_MODEL_LADDER_BACKTEST_2025.md
+          test -s weather_data/processed/real_ml/model3/model3_hist_gradient_boosting.joblib
+          test -s weather_data/processed/real_ml/model3/training_metadata.json
+          test -s weather_data/processed/real_ml/model3/evaluation_metrics.json
+
+      - name: Verify M1 pipeline source scripts
+        run: |
+          test -f weather_data/run_m1_pipeline.py
+          test -f weather_data/ingestion/build_real_imd_observations.py
+          test -f weather_data/real_data_model_ladder_backtest.py
+          test -f weather_data/build_real_ml_dataset.py
+          test -f weather_data/add_rainfall_features.py
+          test -f weather_data/merge_weather_features.py
+          test -f weather_data/validate_weather_merge.py
+          test -f weather_data/train_model_v3.py
+          test -f weather_data/feature_importance_v3.py
+          test -f weather_data/m1_backtest_real_data.py
+          test -f weather_data/create_ml_metadata.py
+          test -f weather_data/create_m1_handoff.py
+
+      - name: Verify large scientific data remains external
+        run: |
+          if git ls-files 'weather_data/raw/*' | grep -q .; then
+            echo "ERROR: raw scientific data is tracked in Git."
+            exit 1
+          fi
+
+          if git ls-files '*.parquet' | grep -q .; then
+            echo "ERROR: large Parquet datasets are tracked in Git."
+            exit 1
+          fi
+
+          echo "Large real-data files are correctly kept outside Git."
+
+      - name: Upload M1 documentation artifacts
+        if: success() && steps.real_m1.outputs.real_data_available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: VARUNA-AI-M1-validation-${{ github.run_number }}
+          if-no-files-found: error
+          path: |
+            weather_data/processed/real_ml/M1_DATA_HANDOFF.md
+            weather_data/processed/real_ml/M1_CI_ORCHESTRATION_REPORT.txt
+            weather_data/processed/real_ml/M1_REAL_DATA_BACKTEST_RESULTS.txt
+            weather_data/processed/real_ml/M1_REAL_MODEL_LADDER_BACKTEST_2025.md
+            weather_data/processed/real_ml/M1_REAL_MODEL_LADDER_BACKTEST_2025.json
+            weather_data/processed/real_ml/M1_TASK_1_2_REPORT.md
+            weather_data/processed/real_ml/VARUNA_AI_ML_DATASET_METADATA.txt
+            weather_data/processed/real_ml/M1_DATA_HANDOFF.md
+
+      - name: Upload source-validation-only report
+        if: success() && steps.real_m1.outputs.real_data_available != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: VARUNA-AI-M1-source-validation-${{ github.run_number }}
+          if-no-files-found: error
+          path: weather_data/processed/real_ml/M1_CI_ORCHESTRATION_REPORT.txt
+
+      - name: Upload generated real model artifacts and metrics
+        if: success() && steps.real_m1.outputs.real_data_available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: VARUNA-AI-M1-real-training-${{ github.run_number }}
+          if-no-files-found: error
+          path: |
+            weather_data/processed/real_ml/M1_REAL_MODEL_LADDER_BACKTEST_2025.json
+            weather_data/processed/real_ml/M1_REAL_MODEL_LADDER_BACKTEST_2025.md
+            weather_data/processed/real_ml/model3/model3_hist_gradient_boosting.joblib
+            weather_data/processed/real_ml/model3/training_metadata.json
+            weather_data/processed/real_ml/model3/evaluation_metrics.json

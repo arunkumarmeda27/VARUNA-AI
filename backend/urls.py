@@ -6,8 +6,16 @@ Owner: Member 5 (Backend + Platform Integration Engineer)
 from django.contrib import admin
 from django.urls import path, include
 from backend import api_views
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
 urlpatterns = [
+    path("api/schema/", SpectacularAPIView.as_view(), name="api_schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="api_schema"), name="api_docs"),
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="api_schema"), name="api_redoc"),
     # Admin Interface
     path("admin/", admin.site.urls),
 
