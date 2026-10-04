@@ -1,0 +1,6 @@
+Dataset type,REAL,SYNTHETIC
+Purpose,Final evaluation,Development/testing
+Used for final metrics,YES,NO
+Rows,8723845,Pipeline dependent
+Missing values,0,Pipeline dependent
+Date coverage,2021-01-08 00:00:00 to 2025-12-31 00:00:00,Development data

@@ -1,0 +1,30 @@
+{
+  "comparison": "real_vs_synthetic",
+  "real_dataset": {
+    "path": "weather_data\\processed\\real_ml\\master_real_weather_2021_2025_features.parquet",
+    "rows": 8723845,
+    "columns": 39,
+    "date_start": "2021-01-08 00:00:00",
+    "date_end": "2025-12-31 00:00:00",
+    "missing_values": 0,
+    "data_type": "REAL"
+  },
+  "synthetic_dataset": {
+    "status": "AVAILABLE_IN_PROJECT_PIPELINE",
+    "data_type": "SYNTHETIC",
+    "note": "Synthetic data is retained for development/regression testing; final performance claims must use real data."
+  },
+  "comparison_summary": {
+    "real_data_used_for_final_metrics": true,
+    "synthetic_data_used_for_final_metrics": false,
+    "real_data_has_zero_missing_values": true,
+    "real_data_years": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "conclusion": "Real data is the authoritative dataset for final model evaluation. Synthetic data is retained only for development and pipeline testing. Final performance claims are based on real observations."
+}
