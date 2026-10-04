@@ -416,11 +416,11 @@ Real-data results documentation: COMPLETE
 
 Real 2025 held-out Level 0/1 comparison: COMPLETE
 
-Four-tier real-data model ladder comparison: PENDING (Levels 2 and 3 unavailable)
+Four-tier real-data model ladder comparison: PARTIAL — Levels 0 and 1 evaluated; Levels 2 and 3 unavailable because compatible real-data feature provenance is unavailable.
 
 
 
-Real-vs-synthetic quantitative comparison: PENDING. No eligible synthetic benchmark was found. The existing verification artifacts cover 15 rows, have no valid-time column or real spatial grid, and the multi-model trainer consumes `VARUNA_AI_100_district_sample_named.csv`; these are excluded from the comparison. No synthetic rows or comparison metrics were generated.
+Real-vs-synthetic quantitative comparison: NOT COMPARABLE — DOCUMENTED. No eligible synthetic benchmark was found. The existing verification artifacts cover 15 rows, have no valid-time column or real spatial grid, and the multi-model trainer consumes `VARUNA_AI_100_district_sample_named.csv`; these are excluded from the comparison. No synthetic rows or comparison metrics were generated.
 
 
 
@@ -444,7 +444,45 @@ PUBLICATION-READY RESULTS DOCUMENTATION: COMPLETE
 
 REMAINING PROJECT-LEVEL COMPARISONS:
 
-\- Four-tier model ladder
+- Full four-tier real-data model ladder comparison (Levels 2 and 3 require compatible real-data feature provenance)
 
-\- Real-vs-synthetic quantitative comparison
+## Real Data vs Synthetic Data Performance
+
+The legacy synthetic benchmark was reviewed for quantitative comparison against
+the new real-data backtest.
+
+| Dataset | Status | Coverage | Quantitative comparison |
+|---|---|---|---|
+| Real IMD + ERA5 | Valid | 2021-2025 real temporally/spatially aligned data | Valid |
+| Legacy synthetic benchmark | Excluded | 100 district rows without equivalent temporal/spatial coverage | Not valid |
+
+### Synthetic Benchmark Eligibility
+
+The legacy synthetic benchmark is based on
+VARUNA_AI_100_district_sample_named.csv.
+
+This dataset contains 100 district-level rows and belongs to the earlier
+model-training workflow. It does not provide equivalent temporal and spatial
+coverage to the real 2021-2025 IMD/ERA5 dataset.
+
+The existing 15-row comparison artifacts also do not establish an independent,
+traceable synthetic benchmark suitable for a controlled quantitative
+comparison.
+
+Therefore, the legacy synthetic benchmark is excluded from quantitative
+real-vs-synthetic performance comparison.
+
+No synthetic rows were generated, modified, or substituted to manufacture
+a comparison.
+
+### Result
+
+The real-data evaluation is the authoritative M1.2 benchmark.
+
+Real-vs-synthetic quantitative comparison is therefore classified as
+NOT COMPARABLE — DOCUMENTED rather than reported as a numerical performance
+comparison.
+
+
+
 
