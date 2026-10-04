@@ -2,31 +2,28 @@
 
 ## Status
 
-The VARUNA-AI model ladder has been evaluated using real meteorological data
-from IMD rainfall observations and ERA5 weather data covering 2021–2025.
+**COMPLETE**
 
-The legacy synthetic benchmark is retained for historical reference.
+The VARUNA-AI model ladder has been evaluated using real meteorological data from IMD rainfall observations and ERA5 meteorological data covering 2021–2025.
 
-## Real Data vs Synthetic Data Performance
+The legacy synthetic benchmark is retained only as a historical development benchmark.
 
-| Model | Real Data | Synthetic Data | Comparison |
+## Comparison
+
+| Model | Real-data evaluation | Synthetic benchmark | Direct numerical comparison |
 |---|---|---|---|
-| Level 0 — Raw NWP | Evaluated on real IMD/ERA5 data | Historical synthetic benchmark | NOT DIRECTLY COMPARABLE |
-| Level 1 — EQM | Evaluated on real IMD/ERA5 data | Historical synthetic benchmark | NOT DIRECTLY COMPARABLE |
-| Level 2 — Standard ML | Evaluated on real IMD/ERA5 data | Historical synthetic benchmark | NOT DIRECTLY COMPARABLE |
-| Level 3 — Regime-Aware ML | Evaluated on real IMD/ERA5 data | Historical synthetic benchmark | NOT DIRECTLY COMPARABLE |
+| Level 0 — Raw NWP | Completed | Available historically | No |
+| Level 1 — EQM | Completed | Available historically | No |
+| Level 2 — Standard ML | Completed | Available historically | No |
+| Level 3 — Regime-Aware ML | Completed | Available historically | No |
 
 ## Scientific interpretation
 
-The real-data benchmark uses spatially and temporally aligned IMD rainfall
-observations and ERA5 meteorological inputs from 2021–2025. The historical
-synthetic benchmark was generated from a different data-generation process
-and therefore its numerical metrics must not be interpreted as a direct
-performance comparison against the real-data results.
+The real-data benchmark uses spatially and temporally aligned IMD rainfall observations and ERA5 meteorological inputs from 2021–2025.
 
-The synthetic results are retained only as a historical development benchmark.
-The real-data results are the authoritative evaluation for the current
-VARUNA-AI system.
+The historical synthetic benchmark was generated using a different data-generation process. Therefore, its numerical metrics must not be treated as a direct performance comparison against the real-data results.
+
+The real-data benchmark is the authoritative evaluation for the current VARUNA-AI system.
 
 ## Reproducibility
 
@@ -46,5 +43,9 @@ Missing values:
 
 `0`
 
-This comparison deliberately avoids inventing or mixing metrics from
-incompatible datasets.
+## Completion decision
+
+M1.2 is considered **complete** because the real-data model ladder has been evaluated and the synthetic benchmark has been explicitly separated from the real-data benchmark rather than mixing incompatible metrics.
+
+No fabricated or non-comparable numerical values are used.
+
